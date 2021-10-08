@@ -16,9 +16,23 @@ export default class User extends BaseModel {
   })
   public password: string
 
-  @column.dateTime({ autoCreate: true })
+  @column()
+  public admin: boolean
+
+  @column.dateTime({
+    autoCreate: true,
+    consume: (value: Date) => {
+      return value.valueOf()
+    },
+  })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    autoCreate: true,
+    autoUpdate: true,
+    consume: (value: DateTime) => {
+      return value.valueOf()
+    },
+  })
   public updatedAt: DateTime
 }
