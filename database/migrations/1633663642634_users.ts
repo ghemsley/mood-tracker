@@ -9,12 +9,12 @@ export default class Users extends BaseSchema {
 
       table.string('username')
       table.string('password')
-      table.boolean('admin')
+      table.boolean('admin').defaultTo(false)
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.timestamp('created_at', { useTz: false })
+      table.timestamp('updated_at', { useTz: false })
     })
   }
 
