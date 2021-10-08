@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
 import Encryption from '@ioc:Adonis/Core/Encryption'
+import Day from './Day'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -35,4 +36,7 @@ export default class User extends BaseModel {
     },
   })
   public updatedAt: DateTime
+
+  @hasMany(() => Day)
+  public days: HasMany<typeof Day>
 }
