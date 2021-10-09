@@ -7,7 +7,8 @@
     "build": "node ace build --production",
     "start": "node server.js",
     "lint": "eslint . --ext=.ts",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "postinstall": "cd client && npm install"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^5.3.7",
