@@ -27,17 +27,25 @@ const schema = gql`
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
     user(id: Int, username: String, admin: Boolean, createdAt: Int, updatedAt: Int): User
-    users: [User]
+    users(id: Int, username: String, admin: Boolean, createdAt: Int, updatedAt: Int): [User]
     day(
       id: Int
       userId: Int
-      meds: Boolean
       rating: Int
+      mood: String
       meals: Int
       exercise: Boolean
+      meds: Boolean
+    ): Day
+    days(
+      id: Int
+      userId: Int
+      rating: Int
       mood: String
-    ): User
-    days: [Day]
+      meals: Int
+      exercise: Boolean
+      meds: Boolean
+    ): [Day]
   }
 `
 
