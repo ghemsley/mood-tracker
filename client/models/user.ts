@@ -1,23 +1,23 @@
 import { DateTime } from 'luxon'
 
 class User {
-  constructor(
-    username: string,
-    password: string,
-    id: number = 0,
-    admin: boolean = false,
-    createdAt: number = 0,
-    updatedAt: number = createdAt
-  ) {
-    this._id = id
-    this.username = username ? username : ''
-    this.password = password ? password : ''
-    this._admin = admin
-    this._createdAt = createdAt
-    this._updatedAt = updatedAt
+  constructor(args: {
+    id?: number
+    email?: string
+    password?: string
+    admin?: boolean
+    createdAt?: number
+    updatedAt?: number
+  }) {
+    this._id = args.id ? args.id : 0
+    this.email = args.email ? args.email : ''
+    this.password = args.password ? args.password : ''
+    this._admin = args.admin ? args.admin : false
+    this._createdAt = args.createdAt ? args.createdAt : 0
+    this._updatedAt = args.createdAt ? args.createdAt : this._createdAt
   }
   private _id: number = 0
-  public username: string = ''
+  public email: string = ''
   public password: string = ''
   private _admin: boolean = false
   private _createdAt: number = 0
@@ -60,7 +60,7 @@ class User {
   public toObject() {
     return {
       id: this.id,
-      username: this.username,
+      email: this.email,
       password: this.password,
       admin: this.admin,
       createdAt: this.createdAt,
@@ -73,8 +73,8 @@ class User {
         case 'id':
           this._setId(value)
           break
-        case 'username':
-          this.username = value
+        case 'email':
+          this.email = value
           break
         case 'password':
           this.password = value

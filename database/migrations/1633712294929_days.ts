@@ -8,17 +8,17 @@ export default class Days extends BaseSchema {
       table.increments('id').primary()
       table.integer('user_id').unsigned().references('users.id').onDelete('CASCADE').notNullable()
 
-      table.integer('rating').defaultTo(5)
-      table.string('mood').defaultTo('happy')
-      table.integer('meals').defaultTo(3)
-      table.boolean('exercise').defaultTo(false)
-      table.boolean('meds').defaultTo(false)
+      table.integer('rating').defaultTo(5).notNullable()
+      table.string('mood').defaultTo('happy').notNullable()
+      table.integer('meals').defaultTo(3).notNullable()
+      table.boolean('exercise').defaultTo(false).notNullable()
+      table.boolean('meds').defaultTo(false).notNullable()
 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.timestamp('created_at', { useTz: true }).notNullable()
+      table.timestamp('updated_at', { useTz: true }).notNullable()
     })
   }
 

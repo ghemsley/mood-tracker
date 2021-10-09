@@ -17,22 +17,20 @@ const reducer = {
         return {
           authChecked: true,
           loggedIn: true,
-          currentUser: new User(action.payload.username, action.payload.password),
+          currentUser: new User(action.payload).toObject(),
         }
       case 'UPDATE_USER':
         return {
           ...state,
-          currentUser: action.payload.user.updateFromObject(action.payload.update),
+          currentUser:
+            action.payload.user instanceof User &&
+            action.payload.user.updateFromObject(action.payload.update).toObject(),
         }
       case 'LOGIN_USER':
         return {
           authChecked: true,
           loggedIn: true,
-          currentUser: new User(
-            action.payload.username,
-            action.payload.password,
-            ...action.payload
-          ),
+          currentUser: new User(action.payload).toObject(),
         }
       case 'LOGOUT_USER':
         return {

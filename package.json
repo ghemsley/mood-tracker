@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "devnext": "cd client && npm run dev",
     "dev": "node ace serve --watch",
+    "devall": "concurrently \"npm:dev\" \"npm:devnext\"",
     "build": "node ace build --production",
     "start": "node server.js",
     "lint": "eslint . --ext=.ts",
@@ -13,6 +15,7 @@
   "devDependencies": {
     "@adonisjs/assembler": "^5.3.7",
     "adonis-preset-ts": "^2.1.0",
+    "concurrently": "^6.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-adonis": "^1.3.3",
@@ -24,9 +27,12 @@
     "youch-terminal": "^1.1.1"
   },
   "dependencies": {
+    "@adonisjs/auth": "^8.0.9",
     "@adonisjs/core": "^5.3.4",
     "@adonisjs/lucid": "^16.2.1",
+    "@adonisjs/redis": "^7.0.9",
     "@adonisjs/repl": "^3.1.6",
+    "@phc/argon2": "^1.0.9",
     "adonis-apollo": "^0.17.0",
     "apollo-server": "^3.3.0",
     "graphql": "^15.6.1",

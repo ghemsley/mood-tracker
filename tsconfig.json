@@ -29,7 +29,9 @@
       "@adonisjs/core",
       "@adonisjs/repl",
       "@adonisjs/lucid",
-      "adonis-apollo"
+      "adonis-apollo",
+      "@adonisjs/redis",
+      "@adonisjs/auth"
     ]
   }
 }

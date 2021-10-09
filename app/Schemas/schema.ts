@@ -15,7 +15,7 @@ const schema = gql`
 
   type User {
     id: Int
-    username: String
+    email: String
     admin: Boolean
     createdAt: PositiveInt
     updatedAt: PositiveInt
@@ -26,8 +26,8 @@ const schema = gql`
   # clients can execute, along with the return type for each. In this
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
-    user(id: Int, username: String, admin: Boolean, createdAt: Int, updatedAt: Int): User
-    users(id: Int, username: String, admin: Boolean, createdAt: Int, updatedAt: Int): [User]
+    user(id: Int, email: String, admin: Boolean, createdAt: Int, updatedAt: Int): User
+    users(id: Int, email: String, admin: Boolean, createdAt: Int, updatedAt: Int): [User]
     day(
       id: Int
       userId: Int

@@ -8,12 +8,12 @@ export default class Seeder extends BaseSeeder {
   public async run() {
     const users = await User.createMany([
       {
-        username: 'Graham',
+        email: 'user@example.com',
         password: 'password',
         admin: true,
       },
       {
-        username: 'user1',
+        email: 'user2@example.com',
         password: 'password',
       },
     ])

@@ -10,7 +10,7 @@ const userHooks = {
         `{
         user(id: ${id}) {
           id
-          username
+          email
           admin
           createdAt
           updatedAt
@@ -25,14 +25,14 @@ const userHooks = {
       loading: !error && !data,
     }
   },
-  useFetchUserByUsername: (username: string): { data: any; error: any; loading: boolean } => {
-    const fetchUserByUsername = (url: string) => {
+  useFetchUserByEmail: (email: string): { data: any; error: any; loading: boolean } => {
+    const fetchUserByEmail = (url: string) => {
       return request(
         url,
         `{
-        user(id: ${username}) {
+        user(email: "${email}") {
           id
-          username
+          email
           admin
           createdAt
           updatedAt
@@ -40,7 +40,7 @@ const userHooks = {
       }`
       )
     }
-    const { data, error } = useSWR(constants.API, fetchUserByUsername)
+    const { data, error } = useSWR(constants.API, fetchUserByEmail)
     return {
       data: data,
       error: error,
@@ -49,7 +49,7 @@ const userHooks = {
   },
   useFetchUsers: (args?: {
     id?: number
-    username?: string
+    email?: string
     admin?: boolean
     createdAt?: number
     updatedAt?: number
@@ -69,7 +69,7 @@ const userHooks = {
         `{
         users${stringifyArgs()} {
           id
-          username
+          email
           admin
           createdAt
           updatedAt
