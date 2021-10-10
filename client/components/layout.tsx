@@ -14,6 +14,12 @@ const Layout: React.FunctionComponent = ({ children }) => {
             <Nav.Item as={NavLink} href="/">
               Home
             </Nav.Item>
+            <Nav.Item as={NavLink} href="/login">
+              Log in
+            </Nav.Item>
+            <Nav.Item as={NavLink} href="/signup">
+              Sign up
+            </Nav.Item>
           </Nav>
         </Navbar>
       </Header>
