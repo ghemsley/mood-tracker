@@ -20,9 +20,32 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 import ApolloServer from '@ioc:Zakodium/Apollo/Server'
+import axios from 'axios'
+import { request as graphql } from 'graphql-request'
 
 ApolloServer.applyMiddleware()
 
-Route.get('/', async () => {
-  return { hello: 'world' }
+Route.post('/login', async ({ auth, request }) => {
+  const email = request.input('email')
+  const password = request.input('password')
+
+  const result = await auth.use('api').attempt(email, password)
+  const { user, token } = result
+  return JSON.stringify({
+    user,
+    token,
+  })
+})
+
+Route.post('/api', async ({ auth, request }) => {
+  const result = await auth.use('api').authenticate()
+  const token = auth.use('api').token
+  if (token && request.hasBody()) {
+    const { query, variables } = request.body()
+    const response = await graphql('http://localhost:3333/graphql', query, null, {
+      Authorization: `Bearer ${token.tokenHash} ${token.userId}`,
+    })
+    console.log(response)
+    return { data: JSON.stringify(response) }
+  } else return { error: 'something went wrong' }
 })
