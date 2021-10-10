@@ -1,8 +1,11 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, BelongsTo, column } from '@ioc:Adonis/Lucid/Orm'
 import User from './User'
+import CamelCaseNamingStrategy from './helpers/camelCase'
 
 export default class Day extends BaseModel {
+  public static namingStrategy = new CamelCaseNamingStrategy()
+
   @column({ isPrimary: true })
   public id: number
 
