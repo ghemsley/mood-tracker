@@ -1,5 +1,6 @@
+import dayHooks from './days'
 import userHooks from './users'
 
-const apiHooks = { ...userHooks }
+const apiHooks = { ...userHooks, ...dayHooks }
 
 export default apiHooks
