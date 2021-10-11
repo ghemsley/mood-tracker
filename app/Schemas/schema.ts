@@ -11,6 +11,8 @@ const schema = gql`
     meals: Int
     exercise: Boolean
     meds: Boolean
+    createdAt: PositiveInt
+    updatedAt: PositiveInt
   }
 
   type User {

@@ -45,7 +45,6 @@ Route.post('/api', async ({ auth, request }) => {
     const response = await graphql('http://localhost:3333/graphql', query, null, {
       Authorization: `Bearer ${token.tokenHash} ${token.userId}`,
     })
-    console.log(response)
     return { data: JSON.stringify(response) }
   } else return { error: 'something went wrong' }
 })
