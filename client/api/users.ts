@@ -29,8 +29,8 @@ const userHooks = {
   },
   useFetchUserById: (id: number, start: boolean): { data: any; error: any; loading: boolean } => {
     const token = helpers.getToken()
-    const fetchUserById = (url: string) => {
-      return request(
+    const fetchUserById = (url: string) =>
+      request(
         url,
         gql`
           {
@@ -46,7 +46,7 @@ const userHooks = {
         null,
         helpers.auth()
       )
-    }
+
     const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchUserById)
     return {
       data: data && JSON.parse(data),
@@ -58,8 +58,8 @@ const userHooks = {
     email: string,
     start: boolean
   ): { data: any; error: any; loading: boolean } => {
-    const fetchUserByEmail = (url: string) => {
-      return request(
+    const fetchUserByEmail = (url: string) =>
+      request(
         url,
         gql`{
         user(email: "${email}") {
@@ -73,7 +73,6 @@ const userHooks = {
         null,
         helpers.auth()
       )
-    }
     const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchUserByEmail)
     return {
       data: data && JSON.parse(data),
@@ -91,8 +90,8 @@ const userHooks = {
     },
     start?: boolean
   ): { data: any; error: any; loading: boolean } => {
-    const fetchUsers = (url: string) => {
-      return request(
+    const fetchUsers = (url: string) =>
+      request(
         url,
         gql`{
         users${helpers.stringifyArgs(args)} {
@@ -106,7 +105,6 @@ const userHooks = {
         null,
         helpers.auth()
       )
-    }
     const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchUsers)
     return {
       data: data && JSON.parse(data),

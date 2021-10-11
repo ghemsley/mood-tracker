@@ -37,6 +37,10 @@ Route.post('/login', async ({ auth, request }) => {
   })
 })
 
+Route.get('/logout', async ({ auth, request }) => {
+  const result = await auth.use('api').authenticate()
+})
+
 Route.post('/api', async ({ auth, request }) => {
   const result = await auth.use('api').authenticate()
   const token = auth.use('api').token
