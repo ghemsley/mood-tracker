@@ -74,11 +74,11 @@ const CalendarPage: NextPage = () => {
     } else return <></>
   }
 
-  if (loading && !error) {
+  if (loading) {
     return <Loader size="lg" center content="loading..." />
   } else if (error) {
     return <p>Error</p>
-  } else if (data && data.days.length === 0){
+  } else if (data && data.days.length === 0) {
     return (
       <FlexboxGrid justify="center" align="middle">
         <FlexboxGrid.Item colspan={100}>

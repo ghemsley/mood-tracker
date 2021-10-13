@@ -15,8 +15,7 @@ const Login: NextPage = () => {
     event.preventDefault()
     setStartFetch(true)
   }
-  if (!loading && !error) {
-    console.log(data)
+  if (!loading) {
     data && data.user && dispatch(actions.createUser(data.user))
   } else if (!loading && error) {
     console.error(error)

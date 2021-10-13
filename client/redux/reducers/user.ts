@@ -9,7 +9,7 @@ const reducer = {
     },
     action: {
       type: string
-      payload: any
+      payload?: any
     }
   ) => {
     switch (action.type) {
@@ -34,8 +34,8 @@ const reducer = {
         }
       case 'LOGOUT_USER':
         return {
-          authChecked: true,
-          loggedIn: true,
+          authChecked: false,
+          loggedIn: false,
           currentUser: null,
         }
 
