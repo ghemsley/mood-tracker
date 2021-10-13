@@ -8,6 +8,9 @@ const helpers = {
   getToken: () => {
     return localStorage.getItem('token')
   },
+  deleteToken: () => {
+    localStorage.removeItem('token')
+  },
   stringifyArgs: (args: any) => {
     if (args) {
       const array = []
