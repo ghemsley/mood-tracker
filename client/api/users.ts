@@ -27,6 +27,26 @@ const userHooks = {
       loading: !error && !data,
     }
   },
+  useLogoutUser: (start: boolean): { data: any; error: any; loading: boolean } => {
+    const logoutUser = (url: string) =>
+      fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        mode: 'cors',
+      })
+        .then((response) => {
+          helpers.deleteToken()
+          return response
+        })
+        .then((response) => response.json())
+    const { data, error } = useSWR(start ? constants.API + '/logout' : null, logoutUser)
+
+    return {
+      data: data,
+      error: error,
+      loading: !error && !data,
+    }
+  },
   useFetchUserById: (id: number, start: boolean): { data: any; error: any; loading: boolean } => {
     const token = helpers.getToken()
     const fetchUserById = (url: string) =>
