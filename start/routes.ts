@@ -20,7 +20,6 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 import ApolloServer from '@ioc:Zakodium/Apollo/Server'
-import axios from 'axios'
 import { request as graphql } from 'graphql-request'
 
 ApolloServer.applyMiddleware()
@@ -29,7 +28,7 @@ Route.post('/login', async ({ auth, request }) => {
   const email = request.input('email')
   const password = request.input('password')
 
-  const result = await auth.use('api').attempt(email, password)
+  const result = await auth.use('api').attempt(email, password, { expiresIn: '1day' })
   const { user, token } = result
   return JSON.stringify({
     user,
@@ -37,8 +36,18 @@ Route.post('/login', async ({ auth, request }) => {
   })
 })
 
-Route.get('/logout', async ({ auth, request }) => {
+Route.get('/logout', async ({ auth }) => {
   const result = await auth.use('api').authenticate()
+  if (result && typeof result.id === 'number') {
+    await auth.use('api').revoke()
+    return JSON.stringify({
+      token: 'revoked',
+    })
+  } else {
+    return {
+      error: 'something went wrong',
+    }
+  }
 })
 
 Route.post('/api', async ({ auth, request }) => {
