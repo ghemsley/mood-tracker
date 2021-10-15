@@ -15,7 +15,7 @@ const apolloConfig: ApolloConfig<ApolloContext> = {
       const array = auth && auth.split(' ')
       // let token
       let userId
-      if (typeof array !== 'undefined') {
+      if (typeof array !== 'undefined' && array !== null) {
         // token = array[1]
         userId = array[2]
       }
