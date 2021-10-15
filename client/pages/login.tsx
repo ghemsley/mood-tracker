@@ -1,9 +1,10 @@
 import type { NextPage } from 'next'
 import { FlexboxGrid, Panel, Form, ButtonToolbar, Button } from 'rsuite'
 import { useDispatch } from 'react-redux'
+import { FormEvent, useState } from 'react'
 import apiHooks from '../api'
 import actions from '../redux/actions'
-import { FormEvent, useState } from 'react'
+import User from '../models/user'
 
 const Login: NextPage = () => {
   const [startFetch, setStartFetch] = useState(false)
@@ -15,9 +16,11 @@ const Login: NextPage = () => {
     event.preventDefault()
     setStartFetch(true)
   }
-  if (!loading) {
-    data && data.user && dispatch(actions.createUser(data.user))
-  } else if (!loading && error) {
+  if (data) {
+    console.log(data)
+    console.log(new User(data.user))
+    data.user && dispatch(actions.createUser(new User(data.user)))
+  } else if (error) {
     console.error(error)
   }
   return (

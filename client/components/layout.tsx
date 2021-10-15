@@ -5,7 +5,6 @@ import 'rsuite/dist/rsuite.min.css'
 import NavLink from './navLink'
 
 const Layout: React.FunctionComponent = ({ children }) => {
-  const [expand, setExpand] = useState(true)
   return (
     <Container>
       <Header>
