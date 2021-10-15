@@ -11,10 +11,13 @@ export default class Seeder extends BaseSeeder {
         email: 'user@example.com',
         password: 'password',
         admin: true,
+        enabled: 'rating mood meals water people activities exercise meds journal',
       },
       {
         email: 'user2@example.com',
         password: 'password',
+        admin: false,
+        enabled: 'rating mood meals meds exercise',
       },
     ])
     await Promise.all(
@@ -25,8 +28,12 @@ export default class Seeder extends BaseSeeder {
             rating: 7,
             mood: 'happy',
             meals: 3,
-            meds: true,
+            water: 3,
+            people: 2,
+            activities: 1,
             exercise: true,
+            meds: true,
+            journal: 'Went to store and stuff',
           },
           {
             userId: user.id,
