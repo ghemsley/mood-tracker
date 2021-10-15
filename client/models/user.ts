@@ -1,98 +1,63 @@
 import { DateTime } from 'luxon'
 
-class User {
-  constructor(args: {
-    id?: number
-    email?: string
-    password?: string
-    admin?: boolean
-    createdAt?: number
-    updatedAt?: number
-  }) {
-    this._id = args.id ? args.id : 0
-    this.email = args.email ? args.email : ''
-    this.password = args.password ? args.password : ''
-    this._admin = args.admin ? args.admin : false
-    this._createdAt = args.createdAt ? args.createdAt : 0
-    this._updatedAt = args.createdAt ? args.createdAt : this._createdAt
-  }
-  private _id: number = 0
-  public email: string = ''
-  public password: string = ''
-  private _admin: boolean = false
-  private _createdAt: number = 0
-  private _updatedAt: number = this._createdAt
-  private _createdAtDateTime: DateTime = DateTime.fromMillis(this._createdAt)
-  private _updatedAtDateTime: DateTime = DateTime.fromMillis(this._updatedAt)
-  public get createdAtDateTime() {
-    return this._createdAtDateTime
-  }
-  public get updatedAtDateTime() {
-    return this._updatedAtDateTime
-  }
-  public get createdAt() {
-    return this._createdAt
-  }
-  public get updatedAt() {
-    return this._updatedAt
-  }
-  public set updatedAt(ms: number) {
-    this._updatedAt = ms
-    this._updatedAtDateTime = DateTime.fromMillis(ms)
-  }
-  public get admin() {
-    return this._admin
-  }
-  public get id() {
-    return this._id
-  }
-  public _setId(id: number) {
-    this._id = id
-  }
+/** an object representing a user */
+export type UserObject = {
+  id?: number
+  email?: string
+  admin?: boolean
+  enabled?: string
+  createdAt?: number
+  updatedAt?: number
+}
 
-  public _setAdmin(value: boolean) {
-    this._admin = value
+/** a model representing a single user */
+class User {
+  constructor(args: UserObject) {
+    this.id = args.id ? args.id : null
+    this.email = args.email ? args.email : null
+    this.admin = args.admin ? args.admin : null
+    this.enabled = args.enabled ? args.enabled : null
+    this.createdAt = args.createdAt ? args.createdAt : null
+    this.updatedAt = args.updatedAt ? args.updatedAt : null
   }
-  public _setCreatedAt(ms: number) {
-    this._createdAt = ms
-    this._createdAtDateTime = DateTime.fromMillis(ms)
+  /** id of the user */
+  public id: number | null
+  /** user email address */
+  public email: string | null
+  /** whether user has admin rights */
+  public admin: boolean | null
+  /** user's enabled features */
+  public enabled: string | null
+  /** the date this user was created at in Date compatible millisecond format */
+  public createdAt: number | null
+  /** the date this user was updated at in Date compatible millisecond format */
+  public updatedAt: number | null
+  /** returns the user's createdAt property as a DateTime instance */
+  public createdAtDateTime(): DateTime | null {
+    return this.createdAt ? DateTime.fromMillis(this.createdAt) : null
   }
+  /** returns the user's updatedAt property as a DateTime instance */
+  public updatedAtDateTime(): DateTime | null {
+    return this.updatedAt ? DateTime.fromMillis(this.updatedAt) : null
+  }
+  /** return a plain object representing a user */
   public toObject() {
     return {
       id: this.id,
       email: this.email,
-      password: this.password,
       admin: this.admin,
+      enabled: this.enabled,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     }
   }
-  public updateFromObject(userObject: object): User {
+  /** update the user from a plain object */
+  public updateFromObject(userObject: UserObject): User {
     for (const [key, value] of Object.entries(userObject)) {
-      switch (key) {
-        case 'id':
-          this._setId(value)
-          break
-        case 'email':
-          this.email = value
-          break
-        case 'password':
-          this.password = value
-          break
-        case 'admin':
-          this._setAdmin(value)
-          break
-        case 'createdAt':
-          if (this.createdAt === 0) {
-            this._setCreatedAt(value)
-          }
-          break
-        case 'updatedAt':
-          this.updatedAt = value
-          break
-
-        default:
-          break
+      if (new Set(Object.keys(this)).has(key)) {
+        typeof value === 'string'
+          ? Function(`this.${key} = '${value}'`).call(this)
+          : Function(`this.${key} = ${value}`).call(this)
       }
     }
     return this

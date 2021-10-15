@@ -22,6 +22,22 @@ export default class User extends BaseModel {
   @column()
   public admin: boolean
 
+  @column({
+    prepare: (value: string) => {
+      const allowed = new Set(
+        'rating mood meals water people activities exercise meds journal'.split(' ')
+      )
+      const options = value.split(' ').map((key) => key.toLowerCase())
+      const final = options.map((option) => {
+        if (allowed.has(option)) {
+          return option
+        }
+      })
+      return final.join(' ')
+    },
+  })
+  public enabled: string
+
   @column.dateTime({
     autoCreate: true,
     consume: (value: Date) => {
