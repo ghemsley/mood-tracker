@@ -21,11 +21,23 @@ export default class Day extends BaseModel {
   @column({ prepare: (value: number) => Math.max(0, value) })
   public meals: number
 
+  @column({ prepare: (value: number) => Math.max(0, value) })
+  public water: number
+
+  @column({ prepare: (value: number) => Math.max(0, value) })
+  public people: number
+
+  @column({ prepare: (value: number) => Math.max(0, value) })
+  public activities: number
+
   @column()
   public exercise: boolean
 
   @column()
   public meds: boolean
+
+  @column()
+  public journal: string
 
   @column.dateTime({
     autoCreate: true,
