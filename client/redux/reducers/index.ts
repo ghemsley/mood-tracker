@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux'
 import days from './days'
-import users from './user'
+import user from './user'
 
-const reducers = combineReducers({ ...days, ...users })
+const reducers = combineReducers({ days, user })
 
 export default reducers
