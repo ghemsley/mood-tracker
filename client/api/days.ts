@@ -1,12 +1,16 @@
+import { DayObject } from './../models/day'
 import { request, gql } from 'graphql-request'
 import useSWR from 'swr'
 import constants from '../constants'
 import helpers from './helpers'
 
 const dayHooks = {
-  useFetchDayById: (id: number, start: boolean): { data: any; error: any; loading: boolean } => {
-    const fetchDayById = (url: string) => {
-      return request(
+  useFetchDayById: (
+    id: number,
+    start: boolean
+  ): { data: { day: DayObject } | undefined; error: any; loading: boolean } => {
+    const fetchDayById = async (url: string) =>
+      request(
         url,
         gql`
           {
@@ -16,8 +20,12 @@ const dayHooks = {
               rating
               mood
               meals
+              water
+              people
+              activities
               exercise
               meds
+              journal
               createdAt
               updatedAt
             }
@@ -26,20 +34,22 @@ const dayHooks = {
         null,
         helpers.auth()
       )
-    }
-    const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchDayById)
+    const { data, error, isValidating } = useSWR(
+      start ? constants.API + '/api' : null,
+      fetchDayById
+    )
     return {
       data: data && JSON.parse(data),
       error: error,
-      loading: !error && !data,
+      loading: isValidating,
     }
   },
   useFetchDaysByUserId: (
     userId: number,
     start: boolean
-  ): { data: any; error: any; loading: boolean } => {
-    const fetchDayById = (url: string) => {
-      return request(
+  ): { data: { days: DayObject[] } | undefined; error: any; loading: boolean } => {
+    const fetchDayById = async (url: string) =>
+      request(
         url,
         gql`
           {
@@ -49,8 +59,12 @@ const dayHooks = {
               rating
               mood
               meals
+              water
+              people
+              activities
               exercise
               meds
+              journal
               createdAt
               updatedAt
             }
@@ -59,30 +73,22 @@ const dayHooks = {
         null,
         helpers.auth()
       )
-    }
-    const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchDayById)
+    const { data, error, isValidating } = useSWR(
+      start ? constants.API + '/api' : null,
+      fetchDayById
+    )
     return {
       data: data && JSON.parse(data),
       error: error,
-      loading: !error && !data,
+      loading: isValidating,
     }
   },
   useFetchDays: (
-    args?: {
-      id?: number
-      userId?: number
-      rating?: number
-      mood?: string
-      meals?: number
-      exercise?: boolean
-      meds?: boolean
-      createdAt?: number
-      updatedAt?: number
-    },
+    args?: DayObject,
     start?: boolean
-  ): { data: any; error: any; loading: boolean } => {
-    const fetchDays = (url: string) => {
-      return request(
+  ): { data: { days: DayObject[] } | undefined; error: any; loading: boolean } => {
+    const fetchDays = async (url: string) =>
+      request(
         url,
         gql`{
         days${helpers.stringifyArgs(args)} {
@@ -91,8 +97,12 @@ const dayHooks = {
           rating
           mood
           meals
+          water
+          people
+          activities
           exercise
           meds
+          journal
           createdAt
           updatedAt
         }
@@ -100,12 +110,11 @@ const dayHooks = {
         null,
         helpers.auth()
       )
-    }
-    const { data, error } = useSWR(start ? constants.API + '/api' : null, fetchDays)
+    const { data, error, isValidating } = useSWR(start ? constants.API + '/api' : null, fetchDays)
     return {
       data: data && JSON.parse(data),
       error: error,
-      loading: !error && !data,
+      loading: isValidating,
     }
   },
 }
