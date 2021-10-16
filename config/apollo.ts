@@ -2,7 +2,7 @@ import { ApolloConfig, ApolloBaseContext } from '@ioc:Zakodium/Apollo/Server'
 
 interface ApolloContext extends ApolloBaseContext {
   // Define here what will be available in the GraphQL context
-  userId: number
+  userId: number | null
 }
 
 const apolloConfig: ApolloConfig<ApolloContext> = {
@@ -11,6 +11,9 @@ const apolloConfig: ApolloConfig<ApolloContext> = {
   path: '/graphql',
   apolloServer: {
     context({ ctx }) {
+      if (ctx.request.ip() !== '127.0.0.1') {
+        return { ctx, userId: null }
+      }
       const auth = ctx.request.headers().authorization
       const array = auth && auth.split(' ')
       // let token
@@ -19,7 +22,7 @@ const apolloConfig: ApolloConfig<ApolloContext> = {
         // token = array[1]
         userId = array[2]
       }
-      return { ctx, userId }
+      return { ctx, userId: userId ? userId : null }
     },
   },
   executableSchema: {
