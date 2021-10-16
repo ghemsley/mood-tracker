@@ -21,8 +21,23 @@
 import Route from '@ioc:Adonis/Core/Route'
 import ApolloServer from '@ioc:Zakodium/Apollo/Server'
 import { request as graphql } from 'graphql-request'
+import User from '../app/Models/User'
 
 ApolloServer.applyMiddleware()
+
+Route.post('/signup', async ({ auth, request }) => {
+  const email = request.input('email')
+  const password = request.input('password')
+  const confirmPassword = request.input('confirmPassword')
+  if (password === confirmPassword) {
+    const user = await User.create({ email, password })
+    const { token } = await auth.use('api').generate(user, { expiresIn: '1day' })
+    return JSON.stringify({
+      user,
+      token,
+    })
+  } else throw new Error('Passwords do not match')
+})
 
 Route.post('/login', async ({ auth, request }) => {
   const email = request.input('email')
@@ -37,16 +52,12 @@ Route.post('/login', async ({ auth, request }) => {
 
 Route.get('/logout', async ({ auth }) => {
   const result = await auth.use('api').authenticate()
-  if (result && typeof result.id === 'number') {
+  if (typeof result?.id === 'number') {
     await auth.use('api').revoke()
     return JSON.stringify({
       token: 'revoked',
     })
-  } else {
-    return {
-      error: 'something went wrong',
-    }
-  }
+  } else throw new Error('something went wrong')
 })
 
 Route.post('/api', async ({ auth, request }) => {
@@ -58,5 +69,5 @@ Route.post('/api', async ({ auth, request }) => {
       Authorization: `Bearer ${token.tokenHash} ${token.userId}`,
     })
     return { data: JSON.stringify(response) }
-  } else return { error: 'something went wrong' }
+  } else throw new Error('Something went wrong')
 })

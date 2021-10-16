@@ -23,6 +23,7 @@ const Logout: NextPage = () => {
     return (
       <FlexboxGrid justify="center" align="middle">
         <FlexboxGrid.Item colspan={100}>
+          <p>Logged out</p>
           <p>{data && JSON.stringify(data)}</p>
         </FlexboxGrid.Item>
       </FlexboxGrid>
