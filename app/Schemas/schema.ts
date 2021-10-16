@@ -80,6 +80,21 @@ const schema = gql`
       updatedAt: PositiveInt
     ): [Day]
   }
+  type Mutation {
+    addDay(
+      rating: Int
+      mood: String
+      meals: Int
+      water: Int
+      people: Int
+      activities: Int
+      exercise: Boolean
+      meds: Boolean
+      journal: String
+    ): Day
+
+    addUser(email: String!, password: String!, enabled: String): User
+  }
 `
 
 export default schema
