@@ -1,64 +1,79 @@
 import { request, gql } from 'graphql-request'
-import useSWR, { SWRConfig } from 'swr'
+import useSWR from 'swr'
 import constants from '../constants'
 import helpers from './helpers'
 
 const swrConfig = {
   revalidateIfStale: false,
   revalidateOnMount: true,
-  revalidateOnFocus: false,
-  revalidateOnReconnect: false,
+  revalidateOnFocus: true,
+  revalidateOnReconnect: true,
   shouldRetryOnError: false,
 }
 
 const userHooks = {
+  useCheckAuth: (start: boolean) => {
+    const authorize = async (url: string) => helpers.fetcher(url, 'GET')
+    const { data, error, isValidating } = useSWR(
+      start ? constants.API + '/authorize' : null,
+      authorize,
+      swrConfig
+    )
+    data?.token && helpers.setToken(data.token)
+    return {
+      data,
+      error,
+      loading: isValidating,
+    }
+  },
+  useSignupUser: (
+    email: string,
+    password: string,
+    confirmPassword: string,
+    start: boolean
+  ): { data: any; error: any; loading: boolean } => {
+    const loginUser = async (url: string) =>
+      helpers.fetcher(url, 'POST', { email, password, confirmPassword })
+    const { data, error, isValidating } = useSWR(
+      start ? constants.API + '/signup' : null,
+      loginUser,
+      swrConfig
+    )
+    data?.token && helpers.setToken(data.token)
+    return {
+      data,
+      error,
+      loading: isValidating,
+    }
+  },
   useLoginUser: (
     email: string,
     password: string,
     start: boolean
   ): { data: any; error: any; loading: boolean } => {
-    const loginUser = async (url: string) =>
-      fetch(url, {
-        method: 'POST',
-        redirect: 'follow',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      }).then((response) => response.json())
+    const loginUser = async (url: string) => helpers.fetcher(url, 'POST', { email, password })
     const { data, error, isValidating } = useSWR(
       start ? constants.API + '/login' : null,
       loginUser,
       swrConfig
     )
-    data && data.token && helpers.setToken(data.token)
+    data?.token && helpers.setToken(data.token)
     return {
-      data: data,
-      error: error,
+      data,
+      error,
       loading: isValidating,
     }
   },
   useLogoutUser: (start: boolean): { data: any; error: any; loading: boolean } => {
-    const logoutUser = async (url: string) =>
-      fetch(url, {
-        method: 'GET',
-        redirect: 'follow',
-        mode: 'cors',
-      })
-        .then((response) => {
-          helpers.deleteToken()
-          return response
-        })
-        .then((response) => response.json())
+    const logoutUser = async (url: string) => helpers.fetcher(url, 'GET')
     const { data, error, isValidating } = useSWR(
-      start ? constants.API + '/logout' : null,
+      start && helpers.getToken() ? constants.API + '/logout' : null,
       logoutUser,
       swrConfig
     )
     return {
-      data: data,
-      error: error,
+      data,
+      error,
       loading: isValidating,
     }
   },
@@ -88,7 +103,7 @@ const userHooks = {
     )
     return {
       data: data && JSON.parse(data),
-      error: error,
+      error,
       loading: isValidating,
     }
   },
@@ -119,7 +134,7 @@ const userHooks = {
     )
     return {
       data: data && JSON.parse(data),
-      error: error,
+      error,
       loading: isValidating,
     }
   },
@@ -157,7 +172,7 @@ const userHooks = {
     )
     return {
       data: data && JSON.parse(data),
-      error: error,
+      error,
       loading: isValidating,
     }
   },
