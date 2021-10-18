@@ -1,37 +1,25 @@
-import Day from '../../models/day'
+import { DayObject } from '../../models/day'
 
 const days = (
-  state: {
-    id?: number
-    userId?: number
-    rating?: number
-    mood?: string
-    meals?: number
-    water?: number
-    people?: number
-    activities?: number
-    meds?: boolean
-    exercise?: boolean
-    journal?: string
-    updatedAt?: number
-  }[] = [],
+  state: DayObject[] = [],
   action: {
-    type: string
-    payload?: Day
+    type: 'CREATE_DAY' | 'CREATE_DAYS' | 'UPDATE_DAY' | 'DELETE_DAY' | 'CLEAR_DAYS'
+    payload?: DayObject | DayObject[]
   }
 ) => {
   switch (action.type) {
     case 'CREATE_DAY':
-      return action.payload ? [...state, action.payload.toObject()] : state
+      return action.payload ? [...state, action.payload as DayObject] : state
+    case 'CREATE_DAYS':
+      return action.payload ? [...state, ...(action.payload as DayObject[])] : state
     case 'UPDATE_DAY':
       return (() => {
-        const id = action.payload && action.payload.id
-        const day = action.payload && action.payload.toObject()
-        return day ? [...state.filter((existing) => existing.id !== id), day] : state
+        const day = action.payload as DayObject
+        return day ? [...state.filter((existing) => existing.id !== day.id), day] : state
       })()
     case 'DELETE_DAY':
       return (() => {
-        const id = action.payload && action.payload.id
+        const { id } = action?.payload as DayObject
         return id ? state.filter((day) => day.id !== id) : state
       })()
     case 'CLEAR_DAYS':
