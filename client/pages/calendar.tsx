@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Calendar, FlexboxGrid, List, Loader, Panel, Popover, Whisper } from 'rsuite'
 import { AiFillStar } from 'react-icons/ai'
 import { MdMood } from 'react-icons/md'
@@ -14,29 +14,34 @@ import { FunctionComponent } from 'react'
 import { DayObject } from '../models/day'
 import apiHooks from '../api'
 import styles from '../styles/listItem.module.scss'
+import actions from '../redux/actions'
+import { UserObject } from '../models/user'
+import { ThunkAppDispatch } from '../redux/store'
+import Auth from '../components/auth'
 
 const ListItem: FunctionComponent = ({ children }) => (
   <div className={styles.listItem}>{children}</div>
 )
 
 const CalendarPage: NextPage = () => {
-  const currentUser = useSelector((state) => state.user.currentUser)
+  const currentUser: UserObject | null | undefined = useSelector((state) => state.user.currentUser)
+  const days: DayObject[] = useSelector((state) => state.days)
+  const dispatch: ThunkAppDispatch = useDispatch()
   const { data, error, loading } = apiHooks.useFetchDays(
-    { userId: currentUser && currentUser.id },
-    !!currentUser
+    { userId: currentUser?.id },
+    !!currentUser && days.length < 1
   )
   error && console.error(error)
-  data && console.log(data)
+  if (data?.days && days.length < 1) {
+    dispatch(actions.createDays(data.days))
+  }
   const renderCell = (date: Date) => {
     const iconSize = 20
-    const currentDay: DayObject | undefined =
-      data &&
-      data.days &&
-      data.days.find((day: DayObject) => {
-        return day && day.createdAt
-          ? new Date(day.createdAt).toDateString() === date.toDateString()
-          : false
-      })
+    const currentDay: DayObject | undefined = days.find((day: DayObject) => {
+      return day && day.createdAt
+        ? new Date(day.createdAt).toDateString() === date.toDateString()
+        : false
+    })
     if (currentDay) {
       return (
         <Whisper
@@ -139,31 +144,17 @@ const CalendarPage: NextPage = () => {
     } else return <></>
   }
 
-  if (loading) {
-    return <Loader size="lg" center content="loading..." />
-  } else if (error) {
-    return (
-      <FlexboxGrid justify="center" align="middle">
-        <FlexboxGrid.Item colspan={100}>
-          <p>{JSON.stringify(error)}</p>
-        </FlexboxGrid.Item>
-      </FlexboxGrid>
-    )
-  } else if ((data && data.days.length === 0) || !data) {
-    return (
-      <FlexboxGrid justify="center" align="middle">
-        <FlexboxGrid.Item colspan={100}>
-          <p>There are no entries to display.</p>
-        </FlexboxGrid.Item>
-      </FlexboxGrid>
-    )
-  } else {
-    return (
-      <Panel header="Calendar" collapsible defaultExpanded bordered>
-        <Calendar bordered renderCell={renderCell} />
-      </Panel>
-    )
-  }
+  return (
+    <Auth>
+      {loading ? (
+        <Loader size="lg" center content="loading..." />
+      ) : (
+        <Panel header="Calendar" collapsible defaultExpanded bordered>
+          <Calendar bordered renderCell={renderCell} />
+        </Panel>
+      )}
+    </Auth>
+  )
 }
 
 export default CalendarPage
