@@ -1,19 +1,19 @@
-import User from '../../models/user'
+import actions from '.'
+import { UserObject } from '../../models/user'
+import { ThunkAppDispatch } from '../store'
 
-interface UserObject {
-  id?: number
-  email?: string
-  password?: string
-  admin?: boolean
-  enabled?: string
-  createdAt?: number
-  updatedAt?: number
+type UserActionType = {
+  type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'UPDATE_USER'
+  payload?: UserObject
 }
-type Payload = User | UserObject
 
 const users = {
-  createUser: (payload: Payload) => ({ type: 'CREATE_USER', payload }),
-  logoutUser: () => ({ type: 'LOGOUT_USER' }),
+  setAuthenticated: (payload: UserObject) => (dispatch: ThunkAppDispatch) =>
+    Promise.resolve(dispatch({ type: 'SET_AUTHENTICATED', payload })),
+  setUnauthenticated: () => (dispatch: ThunkAppDispatch) =>
+    Promise.resolve(dispatch({ type: 'SET_UNAUTHENTICATED' })).then(() =>
+      dispatch(actions.clearDays())
+    ),
 }
 
 export default users
