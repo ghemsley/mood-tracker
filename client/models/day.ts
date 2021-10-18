@@ -2,23 +2,23 @@ import { DateTime } from 'luxon'
 
 /** an object representing a day */
 export type DayObject = {
-  id?: number
-  userId?: number
-  rating?: number
-  mood?: string
-  meals?: number
-  water?: number
-  people?: number
-  activities?: number
-  meds?: boolean
-  exercise?: boolean
-  journal?: string
-  createdAt?: number
-  updatedAt?: number
+  id?: number | null
+  userId?: number | null
+  rating?: number | null
+  mood?: string | null
+  meals?: number | null
+  water?: number | null
+  people?: number | null
+  activities?: number | null
+  meds?: boolean | null
+  exercise?: boolean | null
+  journal?: string | null
+  createdAt?: number | null
+  updatedAt?: number | null
 }
 
 /** a model for a single day */
-class Day {
+export class Day {
   constructor(args: DayObject) {
     this.id = args.id ? args.id : null
     this.userId = args.userId ? args.userId : null
@@ -91,5 +91,3 @@ class Day {
     return this
   }
 }
-
-export default Day
