@@ -25,18 +25,27 @@ import User from '../app/Models/User'
 
 ApolloServer.applyMiddleware()
 
+Route.get('/authorize', async ({ auth }) => {
+  const user = await auth.use('api').authenticate()
+  return JSON.stringify({
+    user,
+  })
+})
+
 Route.post('/signup', async ({ auth, request }) => {
   const email = request.input('email')
   const password = request.input('password')
   const confirmPassword = request.input('confirmPassword')
   if (password === confirmPassword) {
-    const user = await User.create({ email, password })
-    const { token } = await auth.use('api').generate(user, { expiresIn: '1day' })
-    return JSON.stringify({
-      user,
-      token,
-    })
-  } else throw new Error('Passwords do not match')
+    if (!(await User.findBy('email', email))) {
+      const user = await User.create({ email, password })
+      const { token } = await auth.use('api').generate(user, { expiresIn: '1day' })
+      return JSON.stringify({
+        user,
+        token,
+      })
+    } else return { errors: [{ message: 'Email is taken' }] }
+  } else return { errors: [{ message: 'Passwords do not match' }] }
 })
 
 Route.post('/login', async ({ auth, request }) => {
@@ -44,20 +53,24 @@ Route.post('/login', async ({ auth, request }) => {
   const password = request.input('password')
   const result = await auth.use('api').attempt(email, password, { expiresIn: '1day' })
   const { user, token } = result
-  return JSON.stringify({
-    user,
-    token,
-  })
+  if (user && token) {
+    return JSON.stringify({
+      user,
+      token,
+    })
+  } else return { errors: [{ message: 'Invalid credentials' }] }
 })
 
 Route.get('/logout', async ({ auth }) => {
   const result = await auth.use('api').authenticate()
+  console.log('authenticated', result)
   if (typeof result?.id === 'number') {
     await auth.use('api').revoke()
+    console.log('revoked')
     return JSON.stringify({
       token: 'revoked',
     })
-  } else throw new Error('something went wrong')
+  } else return { errors: [{ message: 'Failed to authenticate' }] }
 })
 
 Route.post('/api', async ({ auth, request }) => {
@@ -69,5 +82,5 @@ Route.post('/api', async ({ auth, request }) => {
       Authorization: `Bearer ${token.tokenHash} ${token.userId}`,
     })
     return { data: JSON.stringify(response) }
-  } else throw new Error('Something went wrong')
+  } else return { errors: [{ message: 'Failed to authenticate' }] }
 })
