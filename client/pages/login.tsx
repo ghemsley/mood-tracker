@@ -1,12 +1,15 @@
 import type { NextPage } from 'next'
-import { FlexboxGrid, Panel, Form, ButtonToolbar, Button } from 'rsuite'
-import { useDispatch } from 'react-redux'
+import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
+import { useDispatch, useSelector } from 'react-redux'
 import { FormEvent, useState } from 'react'
 import apiHooks from '../api'
 import actions from '../redux/actions'
-import User from '../models/user'
+import User, { UserObject } from '../models/user'
+import { useRouter } from 'next/dist/client/router'
 
 const Login: NextPage = () => {
+  const user: UserObject | undefined = useSelector((state) => state.user.currentUser)
+  const router = useRouter()
   const [startFetch, setStartFetch] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,17 +19,28 @@ const Login: NextPage = () => {
     event.preventDefault()
     setStartFetch(true)
   }
-  if (data) {
-    console.log(data)
-    console.log(new User(data.user))
-    data.user && dispatch(actions.createUser(new User(data.user)))
-  } else if (error) {
+  if (data?.user && !user?.id) {
+    dispatch(actions.setAuthenticated(data.user))
+  }
+  if (user?.id) {
+    router.push('/calendar')
+  }
+  if (error) {
     console.error(error)
   }
-  return (
+  return loading ? (
+    <Loader center size="lg" content="loading..." />
+  ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Log in</h3>} bordered>
+          {data?.errors && (
+            <Message showIcon closable type="error" header="Error">
+              {data.errors.map((error: { message: string }, i: number) => (
+                <p key={error.message}>{error.message}</p>
+              ))}
+            </Message>
+          )}
           <Form fluid onSubmit={handleSubmit}>
             <Form.Group>
               <Form.ControlLabel>Email address</Form.ControlLabel>
@@ -34,7 +48,10 @@ const Login: NextPage = () => {
                 name="email"
                 type="text"
                 autoComplete="email"
-                onChange={(value) => setEmail(value)}
+                onChange={(value) => {
+                  setStartFetch(false)
+                  setEmail(value)
+                }}
               />
             </Form.Group>
             <Form.Group>
@@ -43,7 +60,10 @@ const Login: NextPage = () => {
                 name="password"
                 type="password"
                 autoComplete="current-password"
-                onChange={(value) => setPassword(value)}
+                onChange={(value) => {
+                  setStartFetch(false)
+                  setPassword(value)
+                }}
               />
             </Form.Group>
             <Form.Group>
