@@ -2,12 +2,12 @@ import { DateTime } from 'luxon'
 
 /** an object representing a user */
 export type UserObject = {
-  id?: number
-  email?: string
-  admin?: boolean
-  enabled?: string
-  createdAt?: number
-  updatedAt?: number
+  id?: number | null
+  email?: string | null
+  admin?: boolean | null
+  enabled?: string | null
+  createdAt?: number | null
+  updatedAt?: number | null
 }
 
 /** a model representing a single user */
@@ -41,7 +41,7 @@ class User {
     return this.updatedAt ? DateTime.fromMillis(this.updatedAt) : null
   }
   /** return a plain object representing a user */
-  public toObject() {
+  public toObject(): UserObject {
     return {
       id: this.id,
       email: this.email,
