@@ -1,60 +1,42 @@
-import { getNamedType } from 'graphql'
-import User from '../../models/user'
+import User, { UserObject } from '../../models/user'
 
-interface UserObject {
-  id?: number
-  email?: string
-  password?: string
-  admin?: boolean
-  enabled?: string
-  createdAt?: number
-  updatedAt?: number
+type UserStateType = {
+  authChecked: boolean
+  loggedIn: boolean
+  currentUser: UserObject | null
 }
-type Payload = User | UserObject
 
 const user = (
-  state: {
-    authChecked: boolean
-    loggedIn: boolean
-    currentUser: UserObject | null
-  } = {
+  state: UserStateType = {
     authChecked: false,
     loggedIn: false,
     currentUser: null,
   },
   action: {
-    type: string
-    payload?: Payload
+    type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'UPDATE_USER'
+    payload?: UserObject
   }
 ) => {
   switch (action.type) {
-    case 'CREATE_USER':
+    case 'SET_AUTHENTICATED':
       return {
         authChecked: true,
         loggedIn: true,
-        currentUser: action.payload instanceof User ? action.payload.toObject() : null,
+        currentUser: action.payload,
+      }
+    case 'SET_UNAUTHENTICATED':
+      return {
+        authChecked: true,
+        loggedIn: false,
+        currentUser: null,
       }
     case 'UPDATE_USER':
       return {
         ...state,
         currentUser:
-          !(action.payload instanceof User) && action.payload && state.currentUser
+          action.payload && state.currentUser
             ? new User(state.currentUser).updateFromObject(action.payload).toObject()
             : state.currentUser,
-      }
-    case 'LOGIN_USER':
-      return action.payload instanceof User
-        ? {
-            authChecked: true,
-            loggedIn: true,
-            currentUser: action.payload.toObject(),
-          }
-        : state
-    case 'LOGOUT_USER':
-      return {
-        authChecked: false,
-        loggedIn: false,
-        currentUser: null,
       }
 
     default:
