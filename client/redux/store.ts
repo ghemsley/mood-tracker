@@ -1,13 +1,17 @@
 import { useMemo } from 'react'
-import { createStore, applyMiddleware } from 'redux'
+import { createStore, applyMiddleware, AnyAction, Store } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
-import thunkMiddleware from 'redux-thunk'
+import thunk, { ThunkDispatch } from 'redux-thunk'
 import reducers from './reducers'
 
-let store: any
+export type ThunkAppState = ReturnType<typeof reducers>
+export type ThunkAppDispatch = ThunkDispatch<ThunkAppState, void, AnyAction>
+export type ThunkAppStore = Store<ThunkAppState, AnyAction> & { dispatch: ThunkAppDispatch }
+export type ThunkGetState = () => ThunkAppState
 
-function initStore(initialState: any) {
-  return createStore(reducers, initialState, composeWithDevTools(applyMiddleware(thunkMiddleware)))
+let store: any
+export function initStore(initialState: any) {
+  return createStore(reducers, initialState, composeWithDevTools(applyMiddleware(thunk)))
 }
 
 export const initializeStore = (preloadedState: any) => {
