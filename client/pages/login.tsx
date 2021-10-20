@@ -1,43 +1,49 @@
 import type { NextPage } from 'next'
 import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
-import { useDispatch, useSelector } from 'react-redux'
-import { FormEvent, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { FormEvent, memo, useState } from 'react'
 import apiHooks from '../api'
-import actions from '../redux/actions'
-import User, { UserObject } from '../models/user'
-import { useRouter } from 'next/dist/client/router'
+import { UserObject } from '../models/user'
+import Redirect from '../components/redirect'
 
-const Login: NextPage = () => {
-  const user: UserObject | undefined = useSelector((state) => state.user.currentUser)
-  const router = useRouter()
-  const [startFetch, setStartFetch] = useState(false)
+const Login: NextPage = memo(() => {
+  const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
+  const [start, setStart] = useState(false)
+  const [done, setDone] = useState(false)
+  const [errors, setErrors] = useState<{ message: string }[] | undefined>(undefined)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const dispatch = useDispatch()
-  const { data, error, loading } = apiHooks.useLoginUser(email, password, startFetch)
+  apiHooks.useLoginUser(email, password, start).then(data => {
+    if (user) {
+      start && setStart(false)
+      !done && setDone(true)
+    } else {
+      if (data && (data as { errors: { message: string } })?.errors) {
+        const { errors } = data as { errors: { message: string }[] }
+        start && setStart(false)
+        setErrors(errors)
+        !done && setDone(true)
+      }
+    }
+  })
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
-    setStartFetch(true)
+    done && setDone(false)
+    !start && setStart(true)
   }
-  if (data?.user && !user?.id) {
-    dispatch(actions.setAuthenticated(data.user))
-  }
-  if (user?.id) {
-    router.push('/calendar')
-  }
-  if (error) {
-    console.error(error)
-  }
-  return loading ? (
-    <Loader center size="lg" content="loading..." />
-  ) : (
+
+  return done && !!user ? (
+    <Redirect to="/calendar" />
+  ) : start && !user && !errors ? (
+    <Loader center size="lg" content="logging in..." />
+  ) : !user ? (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Log in</h3>} bordered>
-          {data?.errors && (
+          {errors && (
             <Message showIcon closable type="error" header="Error">
-              {data.errors.map((error: { message: string }, i: number) => (
-                <p key={error.message}>{error.message}</p>
+              {errors.map((error: { message: string }, i: number) => (
+                <p key={i}>{error.message}</p>
               ))}
             </Message>
           )}
@@ -48,8 +54,9 @@ const Login: NextPage = () => {
                 name="email"
                 type="text"
                 autoComplete="email"
-                onChange={(value) => {
-                  setStartFetch(false)
+                onChange={value => {
+                  start && setStart(false)
+                  errors && setErrors(undefined)
                   setEmail(value)
                 }}
               />
@@ -60,8 +67,9 @@ const Login: NextPage = () => {
                 name="password"
                 type="password"
                 autoComplete="current-password"
-                onChange={(value) => {
-                  setStartFetch(false)
+                onChange={value => {
+                  start && setStart(false)
+                  errors && setErrors(undefined)
                   setPassword(value)
                 }}
               />
@@ -78,7 +86,11 @@ const Login: NextPage = () => {
         </Panel>
       </FlexboxGrid.Item>
     </FlexboxGrid>
+  ) : (
+    <p>Error</p>
   )
-}
+})
+
+Login.displayName = 'Login'
 
 export default Login
