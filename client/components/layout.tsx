@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 import Auth from './auth'
 
 const Layout: React.FunctionComponent = ({ children }) => {
-  const currentUser = useSelector((state) => state.user.currentUser)
+  const currentUser = useSelector(state => state.user.currentUser)
   return (
     <Container>
       <Header>
@@ -15,13 +15,15 @@ const Layout: React.FunctionComponent = ({ children }) => {
             <Nav.Item as={NavLink} href="/">
               Home
             </Nav.Item>
-            <Nav.Item as={NavLink} href="/calendar">
-              Calendar
-            </Nav.Item>
             {currentUser ? (
-              <Nav.Item as={NavLink} href="/logout">
-                Log out
-              </Nav.Item>
+              <>
+                <Nav.Item as={NavLink} href="/calendar">
+                  Calendar
+                </Nav.Item>
+                <Nav.Item as={NavLink} href="/logout">
+                  Log out
+                </Nav.Item>
+              </>
             ) : (
               <>
                 <Nav.Item as={NavLink} href="/login">
