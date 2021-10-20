@@ -5,6 +5,6 @@
   "useTabs": false,
   "quoteProps": "consistent",
   "bracketSpacing": true,
-  "arrowParens": "always",
+  "arrowParens": "avoid",
   "printWidth": 100
 }

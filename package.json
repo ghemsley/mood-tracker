@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@adonisjs/assembler": "^5.3.7",
+    "@typescript-eslint/parser": "^4.33.0",
     "adonis-preset-ts": "^2.1.0",
     "concurrently": "^6.3.0",
     "eslint": "^7.32.0",
@@ -22,6 +23,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "pino-pretty": "^7.0.1",
     "prettier": "^2.4.1",
+    "ts-auto-guard": "^1.0.0-alpha.27",
     "typescript": "~4.2",
     "youch": "^2.2.2",
     "youch-terminal": "^1.1.1"
@@ -40,6 +42,7 @@
     "graphql-request": "^3.5.0",
     "luxon": "^2.0.2",
     "pg": "^8.7.1",
+    "prettier-eslint": "^13.0.0",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.20"

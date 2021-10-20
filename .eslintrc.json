@@ -1,7 +1,29 @@
 {
-  "extends": ["plugin:adonis/typescriptApp", "prettier"],
-  "plugins": ["prettier"],
+  "extends": [
+    "plugin:adonis/typescriptApp",
+    "prettier",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "prettier",
+    "@typescript-eslint"
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "./client"
+    }
+  },
   "rules": {
-    "prettier/prettier": ["error"]
+    "prettier/prettier": [
+      1
+    ]
+    // "@next/next/no-html-link-for-pages": [
+    //   "error",
+    //   "./client/pages/"
+    // ]
   }
 }
