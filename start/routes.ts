@@ -63,10 +63,8 @@ Route.post('/login', async ({ auth, request }) => {
 
 Route.get('/logout', async ({ auth }) => {
   const result = await auth.use('api').authenticate()
-  console.log('authenticated', result)
   if (typeof result?.id === 'number') {
     await auth.use('api').revoke()
-    console.log('revoked')
     return JSON.stringify({
       token: 'revoked',
     })
