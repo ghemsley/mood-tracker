@@ -1,6 +1,7 @@
+import * as Guards from './user.guard'
 import { DateTime } from 'luxon'
 
-/** an object representing a user */
+/** @see {isUserObject} ts-auto-guard:type-guard */
 export type UserObject = {
   id?: number | null
   email?: string | null
@@ -11,7 +12,7 @@ export type UserObject = {
 }
 
 /** a model representing a single user */
-class User {
+export class User {
   constructor(args: UserObject) {
     this.id = args.id ? args.id : null
     this.email = args.email ? args.email : null
@@ -64,4 +65,4 @@ class User {
   }
 }
 
-export default User
+export { Guards }

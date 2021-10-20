@@ -1,6 +1,7 @@
+import * as Guards from './day.guard'
 import { DateTime } from 'luxon'
 
-/** an object representing a day */
+/** @see {isDayObject} ts-auto-guard:type-guard */
 export type DayObject = {
   id?: number | null
   userId?: number | null
@@ -63,7 +64,7 @@ export class Day {
   public updatedAt: number | null
 
   /** map properties to a new plain object */
-  public toObject() {
+  public toObject(): DayObject {
     return {
       id: this.id,
       userId: this.userId,
@@ -81,7 +82,7 @@ export class Day {
     }
   }
   /** update this day instance from a plain object */
-  public updateFromObject(object: DayObject) {
+  public updateFromObject(object: DayObject): Day {
     for (const [key, value] of Object.entries(object))
       if (new Set(Object.keys(this)).has(key)) {
         typeof value === 'string'
@@ -91,3 +92,4 @@ export class Day {
     return this
   }
 }
+export { Guards }
