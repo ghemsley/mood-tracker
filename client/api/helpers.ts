@@ -1,15 +1,21 @@
+import request, { gql } from 'graphql-request'
+import constants from '../constants'
+import { Day, DayObject } from '../models/day'
+import { User, UserObject } from '../models/user'
+
 const helpers = {
-  setToken: (token: string) => {
+  setToken: (token: string): void => {
+    console.log('setting new token', token)
     localStorage.setItem('token', token)
   },
 
-  getToken: () => {
+  getToken: (): string | null => {
     return localStorage.getItem('token')
   },
-  deleteToken: () => {
+  deleteToken: (): void => {
     localStorage.removeItem('token')
   },
-  stringifyArgs: (args: any) => {
+  stringifyArgs: (args: Record<string, unknown> | undefined): string => {
     if (args) {
       const array = []
       for (const [key, value] of Object.entries(args)) {
@@ -18,27 +24,99 @@ const helpers = {
       return `(${array.join(', ')})`
     } else return ''
   },
-  auth: () => new Headers({ Authorization: `Bearer ${helpers.getToken()}` }),
+  auth: (): Headers => new Headers({ Authorization: `Bearer ${helpers.getToken()}` }),
   fetcher: (
     url: string,
     method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE',
-    body?: object | null | undefined
-  ) => {
-    const token = helpers.getToken()
-    return fetch(url, {
+    auth: boolean,
+    body?: Record<string, unknown> | null | undefined
+  ): Promise<Record<string, unknown>> => {
+    const token = auth ? helpers.getToken() : null
+    return fetch(constants.API + url, {
       method,
       redirect: 'follow',
       mode: 'cors',
-      headers: token
-        ? {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+      headers:
+        auth && token
+          ? new Headers({
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            })
+          : new Headers({
+              'Content-Type': 'application/json',
+            }),
+      body: body ? JSON.stringify(body) : undefined,
+    })
+      .then(response => response.json())
+      .catch(error => {
+        console.log('error', error)
+        return error
+      })
+  },
+  fetchGraphQL: (
+    type: 'day' | 'days' | 'user' | 'users',
+    fields?: string[],
+    args?: DayObject | UserObject
+  ): Promise<any> => {
+    const document = (() => {
+      switch (type) {
+        case 'day':
+          return gql`{
+        day${helpers.stringifyArgs(args)} {
+          ${
+            fields
+              ? fields.join('\n')
+              : `${Object.entries(new Day({}))
+                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
+                  .filter(element => element !== null)
+                  .join('\n')}`
           }
-        : {
-            'Content-Type': 'application/json',
-          },
-      body: body && JSON.stringify(body),
-    }).then((response) => response.json())
+        }
+      }`
+        case 'days':
+          return gql`{
+        days${helpers.stringifyArgs(args)} {
+          ${
+            fields
+              ? fields.join('\n')
+              : `${Object.entries(new Day({}))
+                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
+                  .filter(element => element !== null)
+                  .join('\n')}`
+          }
+        }
+      }`
+        case 'user':
+          return gql`{
+        user${helpers.stringifyArgs(args)} {
+          ${
+            fields
+              ? fields.join('\n')
+              : `${Object.entries(new User({}))
+                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
+                  .filter(element => element !== null)
+                  .join('\n')}`
+          }
+        }
+      }`
+        case 'users':
+          return gql`{
+        users${helpers.stringifyArgs(args)} {
+          ${
+            fields
+              ? fields.join('\n')
+              : `${Object.entries(new User({}))
+                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
+                  .filter(element => element !== null)
+                  .join('\n')}`
+          }
+        }
+      }`
+        default:
+          return gql``
+      }
+    })()
+    return request(constants.API + '/api', document, undefined, helpers.auth())
   },
 }
 
