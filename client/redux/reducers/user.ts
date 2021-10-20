@@ -1,9 +1,9 @@
-import User, { UserObject } from '../../models/user'
+import { User, UserObject } from '../../models/user'
 
 type UserStateType = {
   authChecked: boolean
   loggedIn: boolean
-  currentUser: UserObject | null
+  currentUser: UserObject | null | undefined
 }
 
 const user = (
@@ -16,7 +16,7 @@ const user = (
     type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'UPDATE_USER'
     payload?: UserObject
   }
-) => {
+): UserStateType => {
   switch (action.type) {
     case 'SET_AUTHENTICATED':
       return {
