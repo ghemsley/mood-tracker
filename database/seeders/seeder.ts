@@ -21,29 +21,28 @@ export default class Seeder extends BaseSeeder {
       },
     ])
     await Promise.all(
-      users.map((user) =>
-        Day.createMany([
-          {
-            userId: user.id,
-            rating: 7,
-            mood: 'happy',
-            meals: 3,
-            water: 3,
-            people: 2,
-            activities: 1,
-            exercise: true,
-            meds: true,
-            journal: 'Went to store and stuff',
-          },
-          {
-            userId: user.id,
-            rating: 3,
-            mood: 'sad',
-            meals: 2,
-            meds: false,
-            exercise: false,
-          },
-        ])
+      users.map(user =>
+        user.id === 1
+          ? Day.create({
+              userId: user.id,
+              rating: 7,
+              mood: 'happy',
+              meals: 3,
+              water: 3,
+              people: 2,
+              activities: 1,
+              exercise: true,
+              meds: true,
+              journal: 'Went to store and stuff',
+            })
+          : Day.create({
+              userId: user.id,
+              rating: 3,
+              mood: 'sad',
+              meals: 2,
+              meds: false,
+              exercise: false,
+            })
       )
     )
   }
