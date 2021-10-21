@@ -151,7 +151,7 @@ const CalendarPage: NextPage = memo(() => {
   return (
     <Auth>
       {user ? (
-        done ? (
+        days ? (
           days.length > 0 ? (
             <Panel header="Calendar" collapsible defaultExpanded bordered>
               <Calendar bordered renderCell={renderCell} />
