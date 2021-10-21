@@ -1,4 +1,4 @@
-import { FunctionComponent, memo, useEffect, useState } from 'react'
+import { FunctionComponent, memo, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Link from 'next/link'
 import { Loader } from 'rsuite'
@@ -12,16 +12,24 @@ import { UserObject } from '../models/user'
 const Auth: FunctionComponent = memo(({ children }) => {
   const [start, setStart] = useState(false)
   const [done, setDone] = useState(false)
-  const currentUser = useSelector(state => state.user.currentUser)
+  const unmounting = useRef(false)
+  const user = useSelector(state => state.user.currentUser)
   useEffect(() => {
-    !currentUser && !start && !done && setStart(true)
-  }, [currentUser, start, done])
-  apiHooks.useCheckAuth(start && !done).then(data => {
-    setStart(false)
-    setDone(true)
+    if (!unmounting && !user && !start && !done) {
+      setStart(true)
+    }
+    return () => {
+      unmounting.current = true
+    }
+  }, [user, start, done, unmounting])
+  apiHooks.useCheckAuth(start && !done, unmounting).then(data => {
+    if (!unmounting.current) {
+      start && setStart(false)
+      !done && setDone(true)
+    }
   })
   return done ? (
-    currentUser ? (
+    user ? (
       <>{children}</>
     ) : (
       <Redirect to="/login" />
