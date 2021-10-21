@@ -1,27 +1,28 @@
 import type { NextPage } from 'next'
-import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
-import { useDispatch, useSelector } from 'react-redux'
+import { FormEvent, memo, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { Button, ButtonToolbar, FlexboxGrid, Form, Loader, Message, Panel } from 'rsuite'
 import apiHooks from '../api'
-import actions from '../redux/actions'
-import { FormEvent, useState } from 'react'
+import Redirect from '../components/redirect'
 import { UserObject } from '../models/user'
-import { useRouter } from 'next/dist/client/router'
 
-const Signup: NextPage = () => {
-  const user: UserObject | undefined = useSelector((state) => state.user.currentUser)
-  const router = useRouter()
-  const [startFetch, setStartFetch] = useState(false)
+const Signup: NextPage = memo(() => {
+  const user: UserObject | undefined = useSelector(state => state.user.currentUser)
+  const [start, setStart] = useState(false)
+  const [done, setDone] = useState(false)
+  const [errors, setErrors] = useState<{ message: string }[] | undefined>(undefined)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [validationErrors, setValidationErrors] = useState(new Array<string>())
-  const { data, error, loading } = apiHooks.useSignupUser(
-    email,
-    password,
-    confirmPassword,
-    startFetch
-  )
-  const dispatch = useDispatch()
+  apiHooks
+    .useSignupUser(email, password, confirmPassword, start, done, setErrors)
+    .then(data => {
+      start && setStart(false)
+      !done && setDone(true)
+      return data
+    })
+    .then(data => data?.errors && setErrors(data.errors))
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
     let emailGood = false
@@ -30,48 +31,53 @@ const Signup: NextPage = () => {
     if (/\w+@\w+\.\w+/i.test(email)) {
       emailGood = true
     } else
-      setValidationErrors((prev) => {
+      setValidationErrors(prev => {
         const message = 'Invalid email address'
-        return prev.find((element) => element === message) ? prev : [...prev, message]
+        return prev.find(element => element === message) ? prev : [...prev, message]
       })
     if (password === confirmPassword) {
       passwordCheckGood = true
     } else
       setValidationErrors((prev: string[]) => {
         const message = 'Passwords do not match'
-        return prev.find((element) => element === message) ? prev : [...prev, message]
+        return prev.find(element => element === message) ? prev : [...prev, message]
       })
     if (password.length >= 8) {
       passwordLengthGood = true
     } else
       setValidationErrors((prev: string[]) => {
         const message = 'Password length must be eight characters or more'
-        return prev.find((element) => element === message) ? prev : [...prev, message]
+        return prev.find(element => element === message) ? prev : [...prev, message]
       })
-    if (emailGood && passwordCheckGood && passwordLengthGood) setStartFetch(true)
+    if (emailGood && passwordCheckGood && passwordLengthGood) {
+      setErrors(undefined)
+      setDone(true)
+      setStart(true)
+    }
   }
-  if (data?.user && !user?.id) {
-    dispatch(actions.setAuthenticated(data.user))
-  }
-  if (user?.id) {
-    router.push('/calendar')
-  }
-  if (error) {
-    console.log('error', error)
-  }
-  return loading ? (
+  return done && user ? (
+    <Redirect to="/calendar" />
+  ) : start && !done && !errors ? (
     <Loader center size="lg" content="loading..." />
   ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Sign up</h3>} bordered>
-          {(data?.errors || validationErrors.length > 0) && (
-            <Message showIcon closable type="error" header="Error">
+          {((!!errors && errors.length > 0) || validationErrors.length > 0) && (
+            <Message
+              showIcon
+              closable
+              type="error"
+              header="Error"
+              onClose={event => {
+                event && setTimeout(() => setValidationErrors([]), 300)
+              }}
+            >
               {validationErrors.map(
-                (error: string, i: number) => error !== '' && <p key={i}>{error}</p>
+                (error: string, i: number) => error !== '' && <p key={i * Math.random()}>{error}</p>
               )}
-              {data?.errors.map((error: { message: string }, i: number) => (
-                <p key={-i}>{error.message}</p>
+              {errors?.map((error, i: number) => (
+                <p key={i * Math.random()}>{error.message}</p>
               ))}
             </Message>
           )}
@@ -80,9 +86,9 @@ const Signup: NextPage = () => {
               <Form.ControlLabel>Email address</Form.ControlLabel>
               <Form.Control
                 name="email"
-                onChange={(value) => {
-                  setValidationErrors([])
-                  setStartFetch(false)
+                onChange={value => {
+                  done && setDone(false)
+                  start && setStart(false)
                   setEmail(value)
                 }}
               />
@@ -92,9 +98,9 @@ const Signup: NextPage = () => {
               <Form.Control
                 name="password"
                 type="password"
-                onChange={(value) => {
-                  setValidationErrors([])
-                  setStartFetch(false)
+                onChange={value => {
+                  done && setDone(false)
+                  start && setStart(false)
                   setPassword(value)
                 }}
               />
@@ -104,9 +110,9 @@ const Signup: NextPage = () => {
               <Form.Control
                 name="confirmPassword"
                 type="password"
-                onChange={(value) => {
-                  setValidationErrors([])
-                  setStartFetch(false)
+                onChange={value => {
+                  done && setDone(false)
+                  start && setStart(false)
                   setConfirmPassword(value)
                 }}
               />
@@ -123,6 +129,8 @@ const Signup: NextPage = () => {
       </FlexboxGrid.Item>
     </FlexboxGrid>
   )
-}
+})
+
+Signup.displayName = 'Signup'
 
 export default Signup

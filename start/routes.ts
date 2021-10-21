@@ -40,8 +40,9 @@ Route.post('/signup', async ({ auth, request }) => {
     if (!(await User.findBy('email', email))) {
       const user = await User.create({ email, password })
       const { token } = await auth.use('api').generate(user, { expiresIn: '1day' })
+      const userWithAllData = await User.find(user.id)
       return JSON.stringify({
-        user,
+        user: userWithAllData,
         token,
       })
     } else return { errors: [{ message: 'Email is taken' }] }
