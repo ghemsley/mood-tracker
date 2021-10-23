@@ -22,7 +22,7 @@ const user = (
       return {
         authChecked: true,
         loggedIn: true,
-        currentUser: action.payload,
+        currentUser: action?.payload,
       }
     case 'SET_UNAUTHENTICATED':
       return {

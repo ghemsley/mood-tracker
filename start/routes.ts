@@ -54,22 +54,18 @@ Route.post('/login', async ({ auth, request }) => {
   const password = request.input('password')
   const result = await auth.use('api').attempt(email, password, { expiresIn: '1day' })
   const { user, token } = result
-  if (user && token) {
-    return JSON.stringify({
-      user,
-      token,
-    })
-  } else return { errors: [{ message: 'Invalid credentials' }] }
+  return JSON.stringify({
+    user,
+    token,
+  })
 })
 
 Route.get('/logout', async ({ auth }) => {
   const result = await auth.use('api').authenticate()
-  if (typeof result?.id === 'number') {
-    await auth.use('api').revoke()
-    return JSON.stringify({
-      token: 'revoked',
-    })
-  } else return { errors: [{ message: 'Failed to authenticate' }] }
+  await auth.use('api').revoke()
+  return JSON.stringify({
+    token: 'revoked',
+  })
 })
 
 Route.post('/api', async ({ auth, request }) => {

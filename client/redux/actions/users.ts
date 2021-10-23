@@ -3,7 +3,7 @@ import { UserObject } from '../../models/user'
 import { ThunkAppDispatch } from '../store'
 
 export type UserActionType = {
-  type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'UPDATE_USER'
+  type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED'
   payload?: UserObject
 }
 
