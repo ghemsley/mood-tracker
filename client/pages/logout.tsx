@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/dist/client/router'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { FlexboxGrid, Loader } from 'rsuite'
 import apiHooks from '../api'
@@ -13,15 +13,25 @@ import { ThunkAppDispatch } from '../redux/store'
 const Logout: NextPage = memo(() => {
   const [done, setDone] = useState(false)
   const [start, setStart] = useState(false)
-  useEffect(() => {
-    !start && !done && setStart(true)
+  const started = useRef(false)
+  const unmounting = useRef(false)
+  apiHooks.useLogoutUser(!done && start, started, unmounting).then(data => {
+    if (!unmounting.current) {
+      start && setStart(false)
+      !done && setDone(true)
+    }
+  })
+  useLayoutEffect(() => {
+    if (!start && !done && !started.current && !unmounting.current) {
+      !start && setStart(true)
+    }
+    return () => {
+      unmounting.current = true
+    }
   }, [start, done])
-  apiHooks.useLogoutUser(!done && start).then(data => setDone(true))
-  return done ? (
-    <Redirect to="/login" />
-  ) : (
+  return (
     <Auth>
-      <Loader size="lg" center content="logging out..." />
+      {done ? <Redirect to="/login" /> : <Loader size="lg" center content="logging out..." />}
     </Auth>
   )
 })
