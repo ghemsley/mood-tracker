@@ -31,7 +31,7 @@ const CalendarPage: NextPage = memo(() => {
   const days: DayObject[] = useSelector(state => state.days)
   const [start, setStart] = useState(false)
   const [done, setDone] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[] | undefined>(undefined)
+  const [errors, setErrors] = useState<{ message: string }[]>([])
   useEffect(() => {
     !!user && !start && !done && setStart(true)
   }, [user, start, done])

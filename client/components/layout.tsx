@@ -5,7 +5,7 @@ import NavLink from './navLink'
 import { useSelector } from 'react-redux'
 import Auth from './auth'
 
-const Layout: React.FunctionComponent = ({ children }) => {
+const Layout: React.FunctionComponent = memo(({ children }) => {
   const currentUser = useSelector(state => state.user.currentUser)
   return (
     <Container>
@@ -41,6 +41,8 @@ const Layout: React.FunctionComponent = ({ children }) => {
       <Footer>Footer</Footer>
     </Container>
   )
-}
+})
+
+Layout.displayName = 'Layout'
 
 export default Layout
