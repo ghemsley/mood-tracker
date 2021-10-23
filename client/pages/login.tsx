@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
 import { useSelector } from 'react-redux'
-import { FormEvent, memo, useEffect, useState } from 'react'
+import { FormEvent, memo, useEffect, useRef, useState } from 'react'
 import apiHooks from '../api'
 import { UserObject } from '../models/user'
 import Redirect from '../components/redirect'
@@ -9,36 +9,44 @@ import Redirect from '../components/redirect'
 const Login: NextPage = memo(() => {
   const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
   const [start, setStart] = useState(false)
-  const [done, setDone] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[] | undefined>(undefined)
+  const [errors, setErrors] = useState<{ message: string }[]>([])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  apiHooks.useLoginUser(email, password, start, done, setErrors).then((data: any) => {
-    setStart(false)
-    setDone(true)
+  const started = useRef(false)
+  const unmounting = useRef(false)
+  apiHooks.useLoginUser(email, password, start, started, unmounting, setErrors).then(() => {
+    started.current = false
+    if (!unmounting.current) {
+      setStart(prev => (prev ? false : prev))
+    }
   })
+  useEffect(() => {
+    return () => {
+      unmounting.current = true
+    }
+  }, [])
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
-    setErrors(undefined)
-    setDone(true)
-    setStart(true)
+    if (!unmounting.current) {
+      setStart(prev => (!prev ? true : prev))
+    }
   }
 
-  return done && user ? (
+  return !start && user ? (
     <Redirect to="/calendar" />
-  ) : start && !done && !errors ? (
+  ) : start && errors.length < 1 && !user ? (
     <Loader center size="lg" content="logging in..." />
   ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Log in</h3>} bordered>
-          {!!errors && (
+          {errors.length > 0 && (
             <Message
               showIcon
               closable
               type="error"
               header="Error"
-              onClose={event => event && setTimeout(() => setErrors(undefined), 300)}
+              onClose={event => event && setTimeout(() => setErrors([]), 300)}
             >
               {errors.map((error: { message: string }, i: number) => (
                 <p key={i}>{error.message}</p>
@@ -53,8 +61,6 @@ const Login: NextPage = memo(() => {
                 type="text"
                 autoComplete="email"
                 onChange={value => {
-                  start && setStart(false)
-                  done && setDone(false)
                   setEmail(value)
                 }}
               />
@@ -66,8 +72,6 @@ const Login: NextPage = memo(() => {
                 type="password"
                 autoComplete="current-password"
                 onChange={value => {
-                  start && setStart(false)
-                  done && setDone(false)
                   setPassword(value)
                 }}
               />
