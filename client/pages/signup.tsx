@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { FormEvent, memo, useState } from 'react'
+import { FormEvent, memo, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Button, ButtonToolbar, FlexboxGrid, Form, Loader, Message, Panel } from 'rsuite'
 import apiHooks from '../api'
@@ -7,76 +7,84 @@ import Redirect from '../components/redirect'
 import { UserObject } from '../models/user'
 
 const Signup: NextPage = memo(() => {
-  const user: UserObject | undefined = useSelector(state => state.user.currentUser)
+  const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
   const [start, setStart] = useState(false)
   const [done, setDone] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[] | undefined>(undefined)
+  const [errors, setErrors] = useState<{ message: string }[]>([])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [validationErrors, setValidationErrors] = useState(new Array<string>())
+  const started = useRef(false)
+  const unmounting = useRef(false)
   apiHooks
-    .useSignupUser(email, password, confirmPassword, start, done, setErrors)
-    .then(data => {
-      start && setStart(false)
-      !done && setDone(true)
-      return data
+    .useSignupUser(email, password, confirmPassword, start, done, started, unmounting, setErrors)
+    .then(() => {
+      started.current = false
+      if (!unmounting.current) {
+        start && setStart(false)
+        !done && setDone(true)
+      }
     })
-    .then(data => data?.errors && setErrors(data.errors))
+  useEffect(() => {
+    return () => {
+      unmounting.current = true
+    }
+  }, [])
+  const displayErrors = (message: string) => {
+    setValidationErrors((prev: string[]) => {
+      return prev.find(element => element === message) ? prev : [...prev, message]
+    })
+  }
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
     let emailGood = false
-    let passwordCheckGood = false
+    let passwordMatchGood = false
     let passwordLengthGood = false
     if (/\w+@\w+\.\w+/i.test(email)) {
       emailGood = true
-    } else
-      setValidationErrors(prev => {
-        const message = 'Invalid email address'
-        return prev.find(element => element === message) ? prev : [...prev, message]
-      })
+    } else displayErrors('Invalid email address')
     if (password === confirmPassword) {
-      passwordCheckGood = true
-    } else
-      setValidationErrors((prev: string[]) => {
-        const message = 'Passwords do not match'
-        return prev.find(element => element === message) ? prev : [...prev, message]
-      })
+      passwordMatchGood = true
+    } else displayErrors('Passwords must match')
     if (password.length >= 8) {
       passwordLengthGood = true
-    } else
-      setValidationErrors((prev: string[]) => {
-        const message = 'Password length must be eight characters or more'
-        return prev.find(element => element === message) ? prev : [...prev, message]
-      })
-    if (emailGood && passwordCheckGood && passwordLengthGood) {
-      setErrors(undefined)
-      setDone(true)
+    } else displayErrors('Password must be at least eight characters')
+    if (emailGood && passwordMatchGood && passwordLengthGood && !unmounting.current) {
+      setErrors([])
+      setDone(false)
       setStart(true)
     }
   }
   return done && user ? (
     <Redirect to="/calendar" />
-  ) : start && !done && !errors ? (
+  ) : !done && !errors ? (
     <Loader center size="lg" content="loading..." />
   ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Sign up</h3>} bordered>
-          {((!!errors && errors.length > 0) || validationErrors.length > 0) && (
+          {(errors.length > 0 || validationErrors.length > 0) && (
             <Message
               showIcon
               closable
               type="error"
               header="Error"
               onClose={event => {
-                event && setTimeout(() => setValidationErrors([]), 300)
+                if (event && !unmounting.current) {
+                  setTimeout(() => {
+                    if (!unmounting.current) {
+                      setErrors([])
+                      setValidationErrors([])
+                    }
+                  }, 300)
+                }
               }}
             >
               {validationErrors.map(
                 (error: string, i: number) => error !== '' && <p key={i * Math.random()}>{error}</p>
               )}
-              {errors?.map((error, i: number) => (
+              {errors.map((error, i: number) => (
                 <p key={i * Math.random()}>{error.message}</p>
               ))}
             </Message>
@@ -87,9 +95,11 @@ const Signup: NextPage = memo(() => {
               <Form.Control
                 name="email"
                 onChange={value => {
-                  done && setDone(false)
-                  start && setStart(false)
-                  setEmail(value)
+                  if (!unmounting.current) {
+                    done && setDone(false)
+                    start && setStart(false)
+                    setEmail(value)
+                  }
                 }}
               />
             </Form.Group>
@@ -99,9 +109,11 @@ const Signup: NextPage = memo(() => {
                 name="password"
                 type="password"
                 onChange={value => {
-                  done && setDone(false)
-                  start && setStart(false)
-                  setPassword(value)
+                  if (!unmounting.current) {
+                    done && setDone(false)
+                    start && setStart(false)
+                    setPassword(value)
+                  }
                 }}
               />
             </Form.Group>
@@ -111,9 +123,11 @@ const Signup: NextPage = memo(() => {
                 name="confirmPassword"
                 type="password"
                 onChange={value => {
-                  done && setDone(false)
-                  start && setStart(false)
-                  setConfirmPassword(value)
+                  if (!unmounting.current) {
+                    done && setDone(false)
+                    start && setStart(false)
+                    setConfirmPassword(value)
+                  }
                 }}
               />
             </Form.Group>
