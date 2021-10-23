@@ -7,7 +7,15 @@ import { ThunkAppDispatch } from '../redux/store'
 import helpers from './helpers'
 import type { UserObject } from '../models/user'
 import { isUserObject } from '../models/user.guard'
-import { MutableRefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 
 export type ErrorType = {
   errors: [{ message: string }]
@@ -21,35 +29,28 @@ export type AuthenticationType = {
 const userHooks = {
   useCheckAuth: async (
     start: boolean,
+    started: MutableRefObject<boolean>,
     unmounting: MutableRefObject<boolean>
-  ): Promise<AuthenticationType | ErrorType | null> => {
+  ): Promise<(AuthenticationType & ErrorType) | null> => {
     const dispatch: ThunkAppDispatch = useDispatch()
-    const started = useRef(false)
-    const result = useRef<AuthenticationType | ErrorType | null>({} as AuthenticationType)
     const run = useCallback(async () => {
       if (start && !started.current && !unmounting.current) {
         started.current = true
-        const authorize = (url: string): unknown => helpers.fetcher(url, 'GET', true)
-        const data = (await authorize('/authorize')) as AuthenticationType
+        const authorize = (url: string) =>
+          helpers.fetcher(url, 'GET', true) as Promise<AuthenticationType & ErrorType>
+        const data = await authorize('/authorize')
         if (typeof data?.token === 'string') {
           helpers.setToken(data.token)
         }
         if (isUserObject(data?.user)) {
           await dispatch(actions.setAuthenticated(data.user))
-          result.current = data
         } else {
-          result.current = data
           console.log('error', data)
         }
-      } else result.current = null
-    }, [start, dispatch, unmounting])
-    useEffect(() => {
-      if (!started.current && !unmounting.current) run()
-      return () => {
-        unmounting.current = true
-      }
-    }, [run, unmounting])
-    return result.current as AuthenticationType | ErrorType
+        return data
+      } else return null
+    }, [start, started, dispatch, unmounting])
+    return start && !started.current && !unmounting.current ? await run() : null
   },
   useSignupUser: async (
     email: string,
@@ -57,93 +58,93 @@ const userHooks = {
     confirmPassword: string,
     start: boolean,
     done: boolean,
-    errorsCallback: any
-  ): Promise<any> => {
+    started: MutableRefObject<boolean>,
+    unmounting: MutableRefObject<boolean>,
+    errorsCallback: Dispatch<SetStateAction<{ message: string }[]>>
+  ): Promise<(AuthenticationType & ErrorType) | null> => {
     const dispatch: ThunkAppDispatch = useDispatch()
-    // const started = useRef(false)
-    const result = useRef<any>(null)
     const run = useCallback(async () => {
-      if (start && done) {
-        // started.current = true
+      if (start && !done && !started.current && !unmounting.current) {
+        started.current = true
         const signupUser = (url: string) =>
           helpers.fetcher(url, 'POST', false, { email, password, confirmPassword })
-        const data = await signupUser('/signup')
+        const data = (await signupUser('/signup')) as AuthenticationType & ErrorType
         if (typeof data?.token === 'string') {
           helpers.setToken(data.token)
         }
-        if (isUserObject(data?.user)) {
+        if (isUserObject(data?.user) && !unmounting.current) {
           await dispatch(actions.setAuthenticated(data.user))
         } else {
           console.log('error', data)
-          errorsCallback(data?.errors)
+          if (!unmounting.current) errorsCallback(data?.errors)
         }
         return data
       } else return null
-    }, [start, done, email, password, confirmPassword, dispatch, errorsCallback])
-    useEffect(() => {
-      result.current = run()
-    }, [run])
-    return result.current
+    }, [
+      start,
+      done,
+      started,
+      email,
+      password,
+      confirmPassword,
+      unmounting,
+      dispatch,
+      errorsCallback,
+    ])
+    return start && !done && !started.current && !unmounting.current ? await run() : null
   },
   useLoginUser: async (
     email: string,
     password: string,
     start: boolean,
-    done: boolean,
-    errorsCallback: any
-  ): Promise<any> => {
+    started: MutableRefObject<boolean>,
+    unmounting: MutableRefObject<boolean>,
+    errorsCallback: Dispatch<SetStateAction<{ message: string }[]>>
+  ): Promise<(AuthenticationType & ErrorType) | null> => {
     const dispatch: ThunkAppDispatch = useDispatch()
-    // const started = useRef(false)
-    const result = useRef<any>(null)
     const run = useCallback(async () => {
-      if (start && done) {
-        // started.current = true
+      if (start && !started.current && !unmounting.current) {
+        started.current = true
+        console.log('running')
         const loginUser = (url: string) => helpers.fetcher(url, 'POST', false, { email, password })
-        const data = await loginUser('/login')
+        const data = (await loginUser('/login')) as AuthenticationType & ErrorType
         if (typeof data?.token === 'string') {
           helpers.setToken(data.token)
         }
-        if (isUserObject(data?.user)) {
+        if (isUserObject(data?.user) && !unmounting.current) {
           await dispatch(actions.setAuthenticated(data.user))
-          // result.current = data
         } else {
           console.log('error', data)
-          errorsCallback(data?.errors)
-          // result.current = data
+          if (!unmounting.current) errorsCallback(data?.errors)
         }
         return data
       } else {
-        // result.current = null
         return null
       }
-    }, [start, done, email, password, dispatch, errorsCallback])
-    useEffect(() => {
-      result.current = run()
-    }, [run])
-    return result.current
+    }, [start, started, email, password, unmounting, dispatch, errorsCallback])
+    return start && !started.current && !unmounting.current ? await run() : null
   },
-  useLogoutUser: async (start: boolean): Promise<{ token: string } | ErrorType | null> => {
+  useLogoutUser: async (
+    start: boolean,
+    started: MutableRefObject<boolean>,
+    unmounting: MutableRefObject<boolean>
+  ): Promise<{ token: string } | ErrorType | null> => {
     const dispatch: ThunkAppDispatch = useDispatch()
-    const started = useRef(false)
-    const result = useRef<{ token: string } | ErrorType | null>({} as { token: string })
     const run = useCallback(async () => {
-      if (start && !started.current) {
+      if (start && !started.current && !unmounting.current) {
         started.current = true
-        dispatch(actions.setUnauthenticated())
         const logoutUser = (url: string) => helpers.fetcher(url, 'GET', true)
         const data = (await logoutUser('/logout')) as { token: string } & ErrorType
         if (typeof data?.token === 'string') {
-          result.current = data as { token: string }
+          console.log('token', data.token)
         } else {
           console.log(data)
-          result.current = data as ErrorType
         }
-      } else result.current = null
-    }, [start, dispatch])
-    useEffect(() => {
-      !started.current && run()
-    }, [run])
-    return result.current
+        await dispatch(actions.setUnauthenticated())
+        return data
+      } else return null
+    }, [start, started, unmounting, dispatch])
+    return start && !started.current && !unmounting.current ? await run() : null
   },
   useFetchUserById: async (
     id: number,

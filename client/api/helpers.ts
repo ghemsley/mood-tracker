@@ -29,12 +29,11 @@ const helpers = {
     url: string,
     method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE',
     auth: boolean,
-    body?: Record<string, unknown> | null | undefined
-  ): Promise<Record<string, unknown>> => {
+    body?: Record<string, any> | undefined
+  ): Promise<Record<string, any>> => {
     const token = auth ? helpers.getToken() : null
     return fetch(constants.API + url, {
       method,
-      redirect: 'follow',
       mode: 'cors',
       headers:
         auth && token
