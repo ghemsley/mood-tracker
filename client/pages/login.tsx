@@ -5,48 +5,50 @@ import { FormEvent, memo, useEffect, useRef, useState } from 'react'
 import apiHooks from '../api'
 import { UserObject } from '../models/user'
 import Redirect from '../components/redirect'
+import { useMountedState, useUpdateEffect } from 'react-use'
+import { AuthenticationType, ErrorType } from '../api/helpers'
 
 const Login: NextPage = memo(() => {
-  const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
+  const user: UserObject | null = useSelector(state => state.user.currentUser)
+  const [errors, setErrors] = useState<ErrorType['errors'] | null>(null)
   const [start, setStart] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[]>([])
+  const [done, setDone] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const started = useRef(false)
-  const unmounting = useRef(false)
-  apiHooks.useLoginUser(email, password, start, started, unmounting, setErrors).then(() => {
-    started.current = false
-    if (!unmounting.current) {
-      setStart(prev => (prev ? false : prev))
-    }
-  })
+  const isMounted = useMountedState()
   useEffect(() => {
-    return () => {
-      unmounting.current = true
+    if (start && isMounted()) {
+      setStart(false)
     }
-  }, [])
+  }, [start, isMounted])
+  apiHooks.useLoginUser(email, password, start, setErrors).then(([data, errors]) => {
+    if (!done && (data || errors) && isMounted()) setDone(true)
+  })
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
-    if (!unmounting.current) {
-      setStart(prev => (!prev ? true : prev))
+    if (done && isMounted()) {
+      errors && setErrors(null)
+      !start && setStart(true)
+      setDone(false)
     }
   }
-
-  return !start && user ? (
+  return done && user ? (
     <Redirect to="/calendar" />
-  ) : start && errors.length < 1 && !user ? (
+  ) : !done ? (
     <Loader center size="lg" content="logging in..." />
   ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Log in</h3>} bordered>
-          {errors.length > 0 && (
+          {errors && errors.length > 0 && (
             <Message
               showIcon
               closable
               type="error"
               header="Error"
-              onClose={event => event && setTimeout(() => setErrors([]), 300)}
+              onClose={event => {
+                if (event && isMounted()) setErrors(null)
+              }}
             >
               {errors.map((error: { message: string }, i: number) => (
                 <p key={i}>{error.message}</p>
