@@ -1,6 +1,5 @@
 import type { NextPage } from 'next'
-import { useSelector } from 'react-redux'
-import { Calendar, List, Loader, Panel, Popover, Whisper } from 'rsuite'
+import { Calendar, List, Loader, Message, Panel, Popover, Whisper } from 'rsuite'
 import { AiFillStar } from 'react-icons/ai'
 import { MdMood } from 'react-icons/md'
 import { FaHamburger } from 'react-icons/fa'
@@ -10,16 +9,14 @@ import { CgArrowDownO } from 'react-icons/cg'
 import { GiWaterDrop } from 'react-icons/gi'
 import { IoIosChatbubbles, IoMdJournal, IoIosMore } from 'react-icons/io'
 import { MdVideogameAsset } from 'react-icons/md'
-import { FunctionComponent, memo, useEffect, useState } from 'react'
+import { FunctionComponent, memo } from 'react'
 import { DayObject } from '../models/day'
 import apiHooks from '../api'
 import styles from '../styles/listItem.module.scss'
-import { UserObject } from '../models/user'
-import Auth from '../components/auth'
-import Redirect from '../components/redirect'
-
 const ListItem: FunctionComponent = ({ children }) => (
-  <div className={styles.listItem}>{children}</div>
+  <List.Item>
+    <div className={styles.listItem}>{children}</div>
+  </List.Item>
 )
 
 const defined = (variable: any) => {
@@ -27,21 +24,10 @@ const defined = (variable: any) => {
 }
 
 const CalendarPage: NextPage = memo(() => {
-  const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
-  const days: DayObject[] = useSelector(state => state.days)
-  const [start, setStart] = useState(false)
-  const [done, setDone] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[]>([])
-  useEffect(() => {
-    !!user && !start && !done && setStart(true)
-  }, [user, start, done])
-  apiHooks.useFetchDays(undefined, { userId: user?.id }, start && !done).then(data => {
-    start && setStart(false)
-    !done && setDone(true)
-  })
+  const [days, errors] = apiHooks.useFetchDaysByUser()
   const renderCell = (date: Date) => {
     const iconSize = 20
-    const currentDay: DayObject | undefined = days.find((day: DayObject) => {
+    const currentDay: DayObject | undefined = days?.find((day: DayObject) => {
       return day && day.createdAt
         ? new Date(day.createdAt).toDateString() === date.toDateString()
         : false
@@ -55,11 +41,9 @@ const CalendarPage: NextPage = memo(() => {
             <Popover title={new Date(currentDay.createdAt as number).toLocaleDateString()}>
               <List>
                 {defined(currentDay.rating) && (
-                  <List.Item>
-                    <ListItem>
-                      <AiFillStar size={iconSize} /> Rating: {currentDay.rating}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <AiFillStar size={iconSize} /> Rating: {currentDay.rating}
+                  </ListItem>
                 )}
                 {defined(currentDay.journal) && (
                   <Whisper
@@ -72,65 +56,49 @@ const CalendarPage: NextPage = memo(() => {
                     }
                   >
                     <a>
-                      <List.Item>
-                        <ListItem>
-                          <IoMdJournal size={iconSize} />
-                          Journal entry:
-                          <IoIosMore size={iconSize} />
-                        </ListItem>
-                      </List.Item>
+                      <ListItem>
+                        <IoMdJournal size={iconSize} />
+                        Journal entry:
+                        <IoIosMore size={iconSize} />
+                      </ListItem>
                     </a>
                   </Whisper>
                 )}
                 {defined(currentDay.mood) && (
-                  <List.Item>
-                    <ListItem>
-                      <MdMood size={iconSize} /> Mood: {currentDay.mood}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <MdMood size={iconSize} /> Mood: {currentDay.mood}
+                  </ListItem>
                 )}
                 {defined(currentDay.meals) && (
-                  <List.Item>
-                    <ListItem>
-                      <FaHamburger size={iconSize} /> Meals eaten: {currentDay.meals}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <FaHamburger size={iconSize} /> Meals eaten: {currentDay.meals}
+                  </ListItem>
                 )}
                 {defined(currentDay.water) && (
-                  <List.Item>
-                    <ListItem>
-                      <GiWaterDrop size={iconSize} /> Hydration: {currentDay.water} cups
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <GiWaterDrop size={iconSize} /> Hydration: {currentDay.water} cups
+                  </ListItem>
                 )}
                 {defined(currentDay.people) && (
-                  <List.Item>
-                    <ListItem>
-                      <IoIosChatbubbles size={iconSize} /> People talked to: {currentDay.people}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <IoIosChatbubbles size={iconSize} /> People talked to: {currentDay.people}
+                  </ListItem>
                 )}
                 {defined(currentDay.activities) && (
-                  <List.Item>
-                    <ListItem>
-                      <MdVideogameAsset size={iconSize} /> Fun activities: {currentDay.water}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <MdVideogameAsset size={iconSize} /> Fun activities: {currentDay.water}
+                  </ListItem>
                 )}
                 {defined(currentDay.meds) && (
-                  <List.Item>
-                    <ListItem>
-                      <RiMedicineBottleLine size={iconSize} /> Took meds:{' '}
-                      {currentDay.meds ? 'yes' : 'no'}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <RiMedicineBottleLine size={iconSize} /> Took meds:{' '}
+                    {currentDay.meds ? 'yes' : 'no'}
+                  </ListItem>
                 )}
                 {defined(currentDay.exercise) && (
-                  <List.Item>
-                    <ListItem>
-                      <BiWalk size={iconSize} /> Exercised: {currentDay.exercise ? 'yes' : 'no'}
-                    </ListItem>
-                  </List.Item>
+                  <ListItem>
+                    <BiWalk size={iconSize} /> Exercised: {currentDay.exercise ? 'yes' : 'no'}
+                  </ListItem>
                 )}
               </List>
             </Popover>
@@ -148,24 +116,26 @@ const CalendarPage: NextPage = memo(() => {
     } else return <></>
   }
 
-  return (
-    <Auth>
-      {user ? (
-        days ? (
-          days.length > 0 ? (
-            <Panel header="Calendar" collapsible defaultExpanded bordered>
-              <Calendar bordered renderCell={renderCell} />
-            </Panel>
-          ) : (
-            <p>There is no data to display</p>
-          )
-        ) : (
-          <Loader center size="lg" content="loading..." />
-        )
-      ) : (
-        <Redirect to="/login" />
-      )}
-    </Auth>
+  return errors && errors.length > 0 ? (
+    <Panel header="Calendar" collapsible defaultExpanded bordered>
+      <Message showIcon closable type="error" header="Error">
+        {errors.map((error: { message: string }, i: number) => (
+          <p key={i}>{error.message}</p>
+        ))}
+      </Message>
+    </Panel>
+  ) : days ? (
+    days.length > 0 ? (
+      <Panel header="Calendar" collapsible defaultExpanded bordered>
+        <Calendar bordered renderCell={renderCell} />
+      </Panel>
+    ) : (
+      <Panel header="Calendar" collapsible defaultExpanded bordered>
+        <p>There are no entries to display</p>
+      </Panel>
+    )
+  ) : (
+    <Loader center size="lg" content="loading..." />
   )
 })
 
