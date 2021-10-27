@@ -1,17 +1,20 @@
 import { useRouter } from 'next/router'
-import { FunctionComponent, useLayoutEffect } from 'react'
+import { FunctionComponent, memo } from 'react'
+import { useMount } from 'react-use'
 import { Loader } from 'rsuite'
 
 interface Props {
   to: string
 }
 
-const Redirect: FunctionComponent<Props> = ({ to }) => {
+const Redirect: FunctionComponent<Props> = memo(({ to }) => {
   const router = useRouter()
-  useLayoutEffect(() => {
+  useMount(() => {
     router.push(to)
-  }, [router, to])
+  })
   return <Loader center size="lg" content="Redirecting..." />
-}
+})
+
+Redirect.displayName = 'Redirect'
 
 export default Redirect
