@@ -3,6 +3,20 @@ import constants from '../constants'
 import { Day, DayObject } from '../models/day'
 import { User, UserObject } from '../models/user'
 
+export type ErrorType = {
+  errors: { message: string }[]
+}
+
+export type DaysType = {
+  day?: DayObject
+  days?: DayObject[]
+}
+
+export type AuthenticationType = {
+  user: UserObject
+  token: string
+}
+
 const helpers = {
   setToken: (token: string): void => {
     console.log('setting new token', token)
@@ -47,10 +61,7 @@ const helpers = {
       body: body ? JSON.stringify(body) : undefined,
     })
       .then(response => response.json())
-      .catch(error => {
-        console.log('error', error)
-        return error
-      })
+      .catch(error => error)
   },
   fetchGraphQL: (
     type: 'day' | 'days' | 'user' | 'users',
@@ -116,6 +127,8 @@ const helpers = {
       }
     })()
     return request(constants.API + '/api', document, undefined, helpers.auth())
+      .then(response => JSON.parse(response))
+      .catch(error => error)
   },
 }
 
