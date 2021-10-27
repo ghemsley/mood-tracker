@@ -1,36 +1,33 @@
 import type { NextPage } from 'next'
 import { FormEvent, memo, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useMountedState, useUpdateEffect } from 'react-use'
 import { Button, ButtonToolbar, FlexboxGrid, Form, Loader, Message, Panel } from 'rsuite'
 import apiHooks from '../api'
+import { ErrorType } from '../api/helpers'
 import Redirect from '../components/redirect'
 import { UserObject } from '../models/user'
 
 const Signup: NextPage = memo(() => {
   const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
   const [start, setStart] = useState(false)
-  const [done, setDone] = useState(false)
-  const [errors, setErrors] = useState<{ message: string }[]>([])
+  const [done, setDone] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [validationErrors, setValidationErrors] = useState(new Array<string>())
-  const started = useRef(false)
-  const unmounting = useRef(false)
-  apiHooks
-    .useSignupUser(email, password, confirmPassword, start, done, started, unmounting, setErrors)
-    .then(() => {
-      started.current = false
-      if (!unmounting.current) {
-        start && setStart(false)
-        !done && setDone(true)
-      }
-    })
-  useEffect(() => {
-    return () => {
-      unmounting.current = true
+  const [errors, setErrors] = useState<ErrorType['errors'] | null>(null)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const isMounted = useMountedState()
+  useUpdateEffect(() => {
+    if (start && isMounted()) {
+      setStart(false)
     }
-  }, [])
+  }, [start, isMounted])
+  apiHooks
+    .useSignupUser(email, password, confirmPassword, start, setErrors)
+    .then(([data, errors]) => {
+      if (!done && (data || errors) && isMounted()) setDone(true)
+    })
   const displayErrors = (message: string) => {
     setValidationErrors((prev: string[]) => {
       return prev.find(element => element === message) ? prev : [...prev, message]
@@ -47,46 +44,41 @@ const Signup: NextPage = memo(() => {
     if (password === confirmPassword) {
       passwordMatchGood = true
     } else displayErrors('Passwords must match')
-    if (password.length >= 8) {
+    if (password.length > 7) {
       passwordLengthGood = true
     } else displayErrors('Password must be at least eight characters')
-    if (emailGood && passwordMatchGood && passwordLengthGood && !unmounting.current) {
-      setErrors([])
+    if (emailGood && passwordMatchGood && passwordLengthGood && done && isMounted()) {
+      errors && setErrors(null)
+      !start && setStart(true)
       setDone(false)
-      setStart(true)
     }
   }
   return done && user ? (
     <Redirect to="/calendar" />
-  ) : !done && !errors ? (
+  ) : !done ? (
     <Loader center size="lg" content="loading..." />
   ) : (
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Sign up</h3>} bordered>
-          {(errors.length > 0 || validationErrors.length > 0) && (
+          {((errors && errors.length > 0) || validationErrors.length > 0) && (
             <Message
               showIcon
               closable
               type="error"
               header="Error"
               onClose={event => {
-                if (event && !unmounting.current) {
-                  setTimeout(() => {
-                    if (!unmounting.current) {
-                      setErrors([])
-                      setValidationErrors([])
-                    }
-                  }, 300)
+                if (event && isMounted()) {
+                  setErrors(null)
+                  setValidationErrors([])
                 }
               }}
             >
               {validationErrors.map(
                 (error: string, i: number) => error !== '' && <p key={i * Math.random()}>{error}</p>
               )}
-              {errors.map((error, i: number) => (
-                <p key={i * Math.random()}>{error.message}</p>
-              ))}
+              {errors &&
+                errors.map((error, i: number) => <p key={i * Math.random()}>{error.message}</p>)}
             </Message>
           )}
           <Form fluid onSubmit={handleSubmit}>
@@ -95,9 +87,7 @@ const Signup: NextPage = memo(() => {
               <Form.Control
                 name="email"
                 onChange={value => {
-                  if (!unmounting.current) {
-                    done && setDone(false)
-                    start && setStart(false)
+                  if (isMounted()) {
                     setEmail(value)
                   }
                 }}
@@ -109,9 +99,7 @@ const Signup: NextPage = memo(() => {
                 name="password"
                 type="password"
                 onChange={value => {
-                  if (!unmounting.current) {
-                    done && setDone(false)
-                    start && setStart(false)
+                  if (isMounted()) {
                     setPassword(value)
                   }
                 }}
@@ -123,9 +111,7 @@ const Signup: NextPage = memo(() => {
                 name="confirmPassword"
                 type="password"
                 onChange={value => {
-                  if (!unmounting.current) {
-                    done && setDone(false)
-                    start && setStart(false)
+                  if (isMounted()) {
                     setConfirmPassword(value)
                   }
                 }}
