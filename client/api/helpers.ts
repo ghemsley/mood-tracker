@@ -29,7 +29,7 @@ const helpers = {
   deleteToken: (): void => {
     localStorage.removeItem('token')
   },
-  stringifyArgs: (args: Record<string, unknown> | undefined): string => {
+  stringifyArgs: (args: Record<string, any> | undefined): string => {
     if (args) {
       const array = []
       for (const [key, value] of Object.entries(args)) {
@@ -44,7 +44,7 @@ const helpers = {
     method: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE',
     auth: boolean,
     body?: Record<string, any> | undefined
-  ): Promise<Record<string, any>> => {
+  ): Promise<any> => {
     const token = auth ? helpers.getToken() : null
     return fetch(constants.API + url, {
       method,

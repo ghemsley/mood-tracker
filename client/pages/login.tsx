@@ -1,12 +1,12 @@
 import type { NextPage } from 'next'
 import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
 import { useSelector } from 'react-redux'
-import { FormEvent, memo, useEffect, useRef, useState } from 'react'
+import { FormEvent, memo, useEffect, useState } from 'react'
 import apiHooks from '../api'
 import { UserObject } from '../models/user'
 import Redirect from '../components/redirect'
-import { useMountedState, useUpdateEffect } from 'react-use'
-import { AuthenticationType, ErrorType } from '../api/helpers'
+import { useMountedState } from 'react-use'
+import { ErrorType } from '../api/helpers'
 
 const Login: NextPage = memo(() => {
   const user: UserObject | null = useSelector(state => state.user.currentUser)

@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
-import { FormEvent, memo, useEffect, useRef, useState } from 'react'
+import { FormEvent, memo, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useMountedState, useUpdateEffect } from 'react-use'
+import { useMountedState } from 'react-use'
 import { Button, ButtonToolbar, FlexboxGrid, Form, Loader, Message, Panel } from 'rsuite'
 import apiHooks from '../api'
 import { ErrorType } from '../api/helpers'
@@ -18,7 +18,7 @@ const Signup: NextPage = memo(() => {
   const [errors, setErrors] = useState<ErrorType['errors'] | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const isMounted = useMountedState()
-  useUpdateEffect(() => {
+  useEffect(() => {
     if (start && isMounted()) {
       setStart(false)
     }
