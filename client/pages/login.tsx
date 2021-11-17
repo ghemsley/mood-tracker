@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { FlexboxGrid, Panel, Form, ButtonToolbar, Button, Message, Loader } from 'rsuite'
+import { FlexboxGrid, Panel, Form, Schema, ButtonToolbar, Button, Message, Loader } from 'rsuite'
 import { useSelector } from 'react-redux'
 import { FormEvent, memo, useEffect, useState } from 'react'
 import apiHooks from '../api'
@@ -7,6 +7,15 @@ import { UserObject } from '../models/user'
 import Redirect from '../components/redirect'
 import { useMountedState } from 'react-use'
 import { ErrorType } from '../api/helpers'
+
+const model = Schema.Model({
+  email: Schema.Types.StringType()
+    .isRequired('This field is required')
+    .isEmail('Please enter a valid email address'),
+  password: Schema.Types.StringType()
+    .isRequired('This field is required')
+    .minLength(8, 'Passwords must be at least eight characters'),
+})
 
 const Login: NextPage = memo(() => {
   const user: UserObject | null = useSelector(state => state.user.currentUser)
@@ -55,7 +64,7 @@ const Login: NextPage = memo(() => {
               ))}
             </Message>
           )}
-          <Form fluid onSubmit={handleSubmit}>
+          <Form fluid onSubmit={handleSubmit} model={model}>
             <Form.Group>
               <Form.ControlLabel>Email address</Form.ControlLabel>
               <Form.Control

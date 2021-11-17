@@ -2,11 +2,25 @@ import type { NextPage } from 'next'
 import { FormEvent, memo, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useMountedState } from 'react-use'
-import { Button, ButtonToolbar, FlexboxGrid, Form, Loader, Message, Panel } from 'rsuite'
+import { Button, ButtonToolbar, FlexboxGrid, Form, Schema, Loader, Message, Panel } from 'rsuite'
 import apiHooks from '../api'
 import { ErrorType } from '../api/helpers'
 import Redirect from '../components/redirect'
 import { UserObject } from '../models/user'
+
+const model = Schema.Model({
+  email: Schema.Types.StringType()
+    .isRequired('This field is required')
+    .isEmail('Please enter a valid email address'),
+  password: Schema.Types.StringType()
+    .isRequired('This field is required')
+    .minLength(8, 'Passwords must be at least eight characters'),
+  confirmPassword: Schema.Types.StringType()
+    .isRequired('This field is required')
+    .addRule((value, data) => {
+      return value === data.password ? true : false
+    }, 'Passwords must match'),
+})
 
 const Signup: NextPage = memo(() => {
   const user: UserObject | null | undefined = useSelector(state => state.user.currentUser)
@@ -16,7 +30,6 @@ const Signup: NextPage = memo(() => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState<ErrorType['errors'] | null>(null)
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
   const isMounted = useMountedState()
   useEffect(() => {
     if (start && isMounted()) {
@@ -28,26 +41,15 @@ const Signup: NextPage = memo(() => {
     .then(([data, errors]) => {
       if (!done && (data || errors) && isMounted()) setDone(true)
     })
-  const displayErrors = (message: string) => {
-    setValidationErrors((prev: string[]) => {
-      return prev.find(element => element === message) ? prev : [...prev, message]
-    })
-  }
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
-    let emailGood = false
-    let passwordMatchGood = false
-    let passwordLengthGood = false
-    if (/\w+@\w+\.\w+/i.test(email)) {
-      emailGood = true
-    } else displayErrors('Invalid email address')
-    if (password === confirmPassword) {
-      passwordMatchGood = true
-    } else displayErrors('Passwords must match')
-    if (password.length > 7) {
-      passwordLengthGood = true
-    } else displayErrors('Password must be at least eight characters')
-    if (emailGood && passwordMatchGood && passwordLengthGood && done && isMounted()) {
+    const validation = model.check({ email, password, confirmPassword })
+    let valid = true
+    for (const [key, value] of Object.entries(validation)) {
+      if (value.hasError) valid = false
+      break
+    }
+    if (valid && done && isMounted()) {
       errors && setErrors(null)
       !start && setStart(true)
       setDone(false)
@@ -61,7 +63,7 @@ const Signup: NextPage = memo(() => {
     <FlexboxGrid justify="center">
       <FlexboxGrid.Item colspan={12}>
         <Panel header={<h3>Sign up</h3>} bordered>
-          {((errors && errors.length > 0) || validationErrors.length > 0) && (
+          {errors && errors.length > 0 && (
             <Message
               showIcon
               closable
@@ -70,18 +72,13 @@ const Signup: NextPage = memo(() => {
               onClose={event => {
                 if (event && isMounted()) {
                   setErrors(null)
-                  setValidationErrors([])
                 }
               }}
             >
-              {validationErrors.map(
-                (error: string, i: number) => error !== '' && <p key={i * Math.random()}>{error}</p>
-              )}
-              {errors &&
-                errors.map((error, i: number) => <p key={i * Math.random()}>{error.message}</p>)}
+              {errors && errors.map((error, i: number) => <p key={i}>{error.message}</p>)}
             </Message>
           )}
-          <Form fluid onSubmit={handleSubmit}>
+          <Form fluid onSubmit={handleSubmit} model={model}>
             <Form.Group>
               <Form.ControlLabel>Email address</Form.ControlLabel>
               <Form.Control
