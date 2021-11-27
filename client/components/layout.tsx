@@ -20,6 +20,9 @@ const Layout: React.FunctionComponent = memo(({ children }) => {
             </Nav.Item>
             {currentUser ? (
               <>
+                <Nav.Item as={NavLink} href="/dayform">
+                  Add mood entry
+                </Nav.Item>
                 <Nav.Item as={NavLink} href="/calendar">
                   Calendar
                 </Nav.Item>
