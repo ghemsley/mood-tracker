@@ -9,7 +9,8 @@ import helpers, { AuthenticationType, ErrorType } from './helpers'
 export type HookReturnType = [(AuthenticationType & ErrorType) | null, ErrorType['errors'] | null]
 
 const userHooks = {
-  useCheckAuth: (): HookReturnType => {
+  useCheckAuth: (protectedRoute: boolean): HookReturnType => {
+    const authChecked = useSelector(state => state.user.authChecked)
     const user = useSelector(state => state.user.currentUser)
     const [data, setData] = useState<(AuthenticationType & ErrorType) | null>(null)
     const [errors, setErrors] = useState<ErrorType['errors'] | null>(null)
@@ -26,12 +27,12 @@ const userHooks = {
         if (!user && isMounted()) await mounted(dispatch(actions.setAuthenticated(data.user)))
         if (isMounted()) setData(data)
       } else {
-        console.log('error', data)
+        if (protectedRoute) console.error('error', data)
         helpers.deleteToken()
         if (isMounted()) await mounted(dispatch(actions.setUnauthenticated()))
         if (isMounted()) setErrors(data?.errors ? data.errors : null)
       }
-    }, [user, isMounted, dispatch, mounted, authorize])
+    }, [protectedRoute, user, isMounted, dispatch, mounted, authorize])
     useEffect(() => {
       if (isMounted()) mounted(run())
     }, [])
@@ -62,7 +63,7 @@ const userHooks = {
       if (isUserObject(data?.user)) {
         if (isMounted()) await mounted(dispatch(actions.setAuthenticated(data.user)))
       } else {
-        console.log('error', data)
+        console.error('error', data)
       }
       return [data, data?.errors ? data.errors : null]
     }, [isMounted, mounted, dispatch, signupUser])
@@ -101,7 +102,7 @@ const userHooks = {
       if (isUserObject(data?.user)) {
         if (isMounted()) await mounted(dispatch(actions.setAuthenticated(data.user)))
       } else {
-        console.log('error', data)
+        console.error('error', data)
       }
       return [data, data?.errors ? data.errors : null]
     }, [dispatch, isMounted, mounted, loginUser])
@@ -133,7 +134,7 @@ const userHooks = {
         console.log('token', data.token)
         if (isMounted()) setData(data)
       } else {
-        console.log('error', data)
+        console.error('error', data)
         if (isMounted()) setErrors(data?.errors ? data.errors : null)
       }
     }, [isMounted, mounted, dispatch, logoutUser])

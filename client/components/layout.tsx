@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Container, Header, Content, Footer, Navbar, Nav, Loader } from 'rsuite'
 import 'rsuite/dist/rsuite.min.css'
 import NavLink from './navLink'
@@ -7,9 +7,10 @@ import Auth from './auth'
 import { useRouter } from 'next/router'
 
 const Layout: React.FunctionComponent = memo(({ children }) => {
+  const protectedRoutes = new Set(['/calendar', '/dayform', '/logout'])
   const currentUser = useSelector(state => state.user.currentUser)
   const router = useRouter()
-  const protectedRoutes = new Set(['/calendar', '/logout'])
+
   return (
     <Container>
       <Header>
@@ -43,7 +44,11 @@ const Layout: React.FunctionComponent = memo(({ children }) => {
           </Nav>
         </Navbar>
       </Header>
-      <Content>{protectedRoutes.has(router.pathname) ? <Auth>{children}</Auth> : children}</Content>
+      <Content>
+        <Auth protectedRoute={protectedRoutes.has(router.pathname)} key={`Auth-${router.pathname}`}>
+          {children}
+        </Auth>
+      </Content>
       <Footer>Footer</Footer>
     </Container>
   )

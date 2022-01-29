@@ -13,7 +13,7 @@ const user = (
     currentUser: null,
   },
   action: {
-    type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'UPDATE_USER'
+    type: 'SET_AUTHENTICATED' | 'SET_UNAUTHENTICATED' | 'RESET_AUTH_CHECKED' | 'UPDATE_USER'
     payload?: UserObject
   }
 ): UserStateType => {
@@ -29,6 +29,11 @@ const user = (
         authChecked: true,
         loggedIn: false,
         currentUser: null,
+      }
+    case 'RESET_AUTH_CHECKED':
+      return {
+        ...state,
+        authChecked: false,
       }
     case 'UPDATE_USER':
       return {

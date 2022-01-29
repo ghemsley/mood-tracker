@@ -1,19 +1,23 @@
 import { useMemo } from 'react'
-import { UserActionType } from './actions/users'
 import { createStore, applyMiddleware, AnyAction, Store } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import thunk, { ThunkDispatch } from 'redux-thunk'
+import actions from './actions'
+import type { ActionType } from './actions'
 import reducers from './reducers'
-import { DayActionType } from './actions/days'
 
 export type ThunkAppState = ReturnType<typeof reducers>
-export type ThunkAppDispatch = ThunkDispatch<ThunkAppState, void, UserActionType | DayActionType>
+export type ThunkAppDispatch = ThunkDispatch<ThunkAppState, void, ActionType>
 export type ThunkAppStore = Store<ThunkAppState, AnyAction> & { dispatch: ThunkAppDispatch }
 export type ThunkGetState = () => ThunkAppState
 
 let store: any
 export function initStore(initialState: any) {
-  return createStore(reducers, initialState, composeWithDevTools(applyMiddleware(thunk)))
+  return createStore(
+    reducers,
+    initialState,
+    composeWithDevTools({ actionCreators: actions })(applyMiddleware(thunk))
+  )
 }
 
 export const initializeStore = (preloadedState: any) => {

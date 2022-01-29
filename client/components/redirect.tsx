@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { FunctionComponent, memo } from 'react'
-import { useMount } from 'react-use'
+import { FunctionComponent, memo, useEffect } from 'react'
+import { useMountedState, usePromise } from 'react-use'
 import { Loader } from 'rsuite'
 
 interface Props {
@@ -8,10 +8,12 @@ interface Props {
 }
 
 const Redirect: FunctionComponent<Props> = memo(({ to }) => {
+  const mounted = usePromise()
+  const isMounted = useMountedState()
   const router = useRouter()
-  useMount(() => {
-    router.push(to)
-  })
+  useEffect(() => {
+    if (isMounted()) mounted(router.push(to))
+  }, [])
   return <Loader center size="lg" content="Redirecting..." />
 })
 

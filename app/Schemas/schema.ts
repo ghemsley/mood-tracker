@@ -80,8 +80,10 @@ const schema = gql`
       updatedAt: PositiveInt
     ): [Day]
   }
+
   type Mutation {
     addDay(
+      userId: Int
       rating: Int
       mood: String
       meals: Int

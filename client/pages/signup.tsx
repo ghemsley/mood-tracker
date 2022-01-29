@@ -49,7 +49,7 @@ const Signup: NextPage = memo(() => {
       if (value.hasError) valid = false
       break
     }
-    if (valid && done && isMounted()) {
+    if (valid && checkStatus && done && isMounted()) {
       errors && setErrors(null)
       !start && setStart(true)
       setDone(false)

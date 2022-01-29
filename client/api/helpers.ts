@@ -29,15 +29,6 @@ const helpers = {
   deleteToken: (): void => {
     localStorage.removeItem('token')
   },
-  stringifyArgs: (args: Record<string, any> | undefined): string => {
-    if (args) {
-      const array = []
-      for (const [key, value] of Object.entries(args)) {
-        array.push(`${key}: ${typeof value === 'string' ? '"' + value + '"' : value}`)
-      }
-      return `(${array.join(', ')})`
-    } else return ''
-  },
   auth: (): Headers => new Headers({ Authorization: `Bearer ${helpers.getToken()}` }),
   fetcher: (
     url: string,
@@ -63,70 +54,68 @@ const helpers = {
       .then(response => response.json())
       .catch(error => error)
   },
-  fetchGraphQL: (
-    type: 'day' | 'days' | 'user' | 'users',
+  queryGraphQL: (
+    queryType: 'day' | 'days' | 'user' | 'users',
     fields?: string[],
     args?: DayObject | UserObject
   ): Promise<any> => {
-    const document = (() => {
-      switch (type) {
-        case 'day':
-          return gql`{
-        day${helpers.stringifyArgs(args)} {
-          ${
-            fields
-              ? fields.join('\n')
-              : `${Object.entries(new Day({}))
-                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
-                  .filter(element => element !== null)
-                  .join('\n')}`
-          }
+    const stringifyArgs = () => {
+      if (args) {
+        const array = []
+        for (const [key, value] of Object.entries(args)) {
+          array.push(`${key}: ${typeof value === 'string' ? '"' + value + '"' : value}`)
+        }
+        return `(${array.join(', ')})`
+      } else return ''
+    }
+
+    const generateQueryFields = () =>
+      fields
+        ? fields.join('\n')
+        : `${Object.entries(
+            queryType === 'day' || queryType === 'days' ? new Day({}) : new User({})
+          )
+            .map(([key, value]) => (typeof value !== 'function' ? key : null))
+            .filter(element => element !== null)
+            .join('\n')}`
+
+    const query = gql`
+      query {
+        ${queryType}${stringifyArgs()} {
+          ${generateQueryFields()}
         }
       }`
-        case 'days':
-          return gql`{
-        days${helpers.stringifyArgs(args)} {
-          ${
-            fields
-              ? fields.join('\n')
-              : `${Object.entries(new Day({}))
-                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
-                  .filter(element => element !== null)
-                  .join('\n')}`
-          }
+
+    return request(constants.API + '/api', query, undefined, helpers.auth())
+      .then(response => JSON.parse(response))
+      .catch(error => error)
+  },
+  mutateGraphQL: (
+    mutationType: 'addDay' | 'addUser',
+    args: DayObject | UserObject
+  ): Promise<any> => {
+    const stringifyArgs = () => {
+      if (args) {
+        const array = []
+        for (const [key, value] of Object.entries(args)) {
+          array.push(`${key}: ${typeof value === 'string' ? '"' + value + '"' : value}`)
+        }
+        return `(${array.join(', ')})`
+      } else return ''
+    }
+
+    const argsToMutationFields = () => {
+      return Object.keys(args).join('\n')
+    }
+
+    const mutation = gql`
+      mutation {
+        ${mutationType}${stringifyArgs()} {
+          ${argsToMutationFields()}
         }
       }`
-        case 'user':
-          return gql`{
-        user${helpers.stringifyArgs(args)} {
-          ${
-            fields
-              ? fields.join('\n')
-              : `${Object.entries(new User({}))
-                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
-                  .filter(element => element !== null)
-                  .join('\n')}`
-          }
-        }
-      }`
-        case 'users':
-          return gql`{
-        users${helpers.stringifyArgs(args)} {
-          ${
-            fields
-              ? fields.join('\n')
-              : `${Object.entries(new User({}))
-                  .map(([key, value]) => (typeof value !== 'function' ? key : null))
-                  .filter(element => element !== null)
-                  .join('\n')}`
-          }
-        }
-      }`
-        default:
-          return gql``
-      }
-    })()
-    return request(constants.API + '/api', document, undefined, helpers.auth())
+
+    return request(constants.API + '/api', mutation, undefined, helpers.auth())
       .then(response => JSON.parse(response))
       .catch(error => error)
   },

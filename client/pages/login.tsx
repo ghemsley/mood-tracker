@@ -10,11 +10,11 @@ import { ErrorType } from '../api/helpers'
 
 const model = Schema.Model({
   email: Schema.Types.StringType()
-    .isRequired('This field is required')
-    .isEmail('Please enter a valid email address'),
+    .isEmail('Please enter a valid email address')
+    .isRequired('This field is required'),
   password: Schema.Types.StringType()
-    .isRequired('This field is required')
-    .minLength(8, 'Passwords must be at least eight characters'),
+    .minLength(8, 'Passwords must be at least eight characters')
+    .isRequired('This field is required'),
 })
 
 const Login: NextPage = memo(() => {
@@ -35,7 +35,13 @@ const Login: NextPage = memo(() => {
   })
   const handleSubmit = (checkStatus: boolean, event: FormEvent) => {
     event.preventDefault()
-    if (done && isMounted()) {
+    const validation = model.check({ email, password })
+    let valid = true
+    for (const [key, value] of Object.entries(validation)) {
+      if (value.hasError) valid = false
+      break
+    }
+    if (valid && checkStatus && done && isMounted()) {
       errors && setErrors(null)
       !start && setStart(true)
       setDone(false)
